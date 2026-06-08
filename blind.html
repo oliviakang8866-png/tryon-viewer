@@ -98,6 +98,8 @@
       transition: background .1s, color .1s;
     }
     .best-btn.voted { background: #1a3a1a; color: #4f4; border-color: #4f4; }
+    .best-btn.none-btn { color: #888; border-color: #333; margin-left: 8px; }
+    .best-btn.none-btn.voted { background: #3a1a1a; color: #f55; border-color: #f55; }
 
     /* submit bar */
     .submit-bar {
@@ -193,13 +195,21 @@ function setIV(ai,t,bi,ii,crit,val) {
 }
 function bestKey(ai,t,ii) { return ['B',ai,t,ii].join('|'); }
 function getBV(ai,t,ii) { return getVotes()[bestKey(ai,t,ii)]||{counts:{},me:[]}; }
+const NONE_LABEL = '都不合格';
 function setBV(ai,t,ii,lbl) {
   const v=getVotes(), k=bestKey(ai,t,ii);
   const c=v[k]||{counts:{},me:[]};
   if(!Array.isArray(c.me)) c.me = c.me ? [c.me] : [];
   const idx=c.me.indexOf(lbl);
-  if(idx>=0){ c.me.splice(idx,1); } // deselect
-  else if(c.me.length<2){ c.me.push(lbl); } // select (max 2)
+  if(idx>=0){
+    c.me.splice(idx,1); // deselect
+  } else if(lbl===NONE_LABEL){
+    c.me=[NONE_LABEL]; // 选"都不合格"时清除其他选项
+  } else {
+    const noneIdx=c.me.indexOf(NONE_LABEL);
+    if(noneIdx>=0) c.me.splice(noneIdx,1); // 选版本时清除"都不合格"
+    if(c.me.length<2) c.me.push(lbl); // select (max 2)
+  }
   v[k]=c; saveVotes(v);
 }
 
@@ -244,9 +254,10 @@ function renderMain() {
     const visibleBranchesEarly=branches.filter(b=>!!getImages(ai,S.template,b)[ii]);
     const meArr=Array.isArray(bv.me)?bv.me:(bv.me?[bv.me]:[]);
     const bestBtnsEarly=visibleBranchesEarly.map((_,i2)=>{const l=LABELS[i2]||String(i2+1);return`<button class="best-btn ${meArr.includes(l)?'voted':''}" data-lbl="${l}" data-ii="${ii}" type="button">${l}</button>`;}).join('');
+    const noneBtn=`<button class="best-btn none-btn ${meArr.includes(NONE_LABEL)?'voted':''}" data-lbl="${NONE_LABEL}" data-ii="${ii}" type="button">都不合格</button>`;
     const bestBarHtml=`<div class="best-bar" data-ii="${ii}">
       <span class="best-bar-q">选最优（最多选两个）${meArr.length ? `&nbsp;&nbsp;✅ 已选：${meArr.join('、')}` : ''}</span>
-      <div class="best-btns">${bestBtnsEarly}</div>
+      <div class="best-btns">${bestBtnsEarly}${noneBtn}</div>
     </div>`;
     html+=`<div class="tmpl-block"><div class="tmpl-no">模板 ${ii+1} · <span style="color:#aaa;font-weight:400">${(D.styles[String(ai)]||[])[ii]||''}</span></div>${bestBarHtml}<div class="scroll-wrap"><div class="scroll-fade"></div><div class="versions-row" data-ii="${ii}">`;
     branches.forEach((branch,bi)=>{
