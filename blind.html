@@ -199,7 +199,7 @@ function setBV(ai,t,ii,lbl) {
   if(!Array.isArray(c.me)) c.me = c.me ? [c.me] : [];
   const idx=c.me.indexOf(lbl);
   if(idx>=0){ c.me.splice(idx,1); } // deselect
-  else if(c.me.length<3){ c.me.push(lbl); } // select (max 3)
+  else if(c.me.length<2){ c.me.push(lbl); } // select (max 2)
   v[k]=c; saveVotes(v);
 }
 
@@ -245,7 +245,7 @@ function renderMain() {
     const meArr=Array.isArray(bv.me)?bv.me:(bv.me?[bv.me]:[]);
     const bestBtnsEarly=visibleBranchesEarly.map((_,i2)=>{const l=LABELS[i2]||String(i2+1);return`<button class="best-btn ${meArr.includes(l)?'voted':''}" data-lbl="${l}" data-ii="${ii}" type="button">${l}</button>`;}).join('');
     const bestBarHtml=`<div class="best-bar" data-ii="${ii}">
-      <span class="best-bar-q">选最优（最多选三个）${meArr.length ? `&nbsp;&nbsp;✅ 已选：${meArr.join('、')}` : ''}</span>
+      <span class="best-bar-q">选最优（最多选两个）${meArr.length ? `&nbsp;&nbsp;✅ 已选：${meArr.join('、')}` : ''}</span>
       <div class="best-btns">${bestBtnsEarly}</div>
     </div>`;
     html+=`<div class="tmpl-block"><div class="tmpl-no">模板 ${ii+1} · <span style="color:#aaa;font-weight:400">${(D.styles[String(ai)]||[])[ii]||''}</span></div>${bestBarHtml}<div class="scroll-wrap"><div class="scroll-fade"></div><div class="versions-row" data-ii="${ii}">`;
