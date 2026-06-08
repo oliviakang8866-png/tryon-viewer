@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="referrer" content="no-referrer"/>
+  <title>盲测</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; padding: 16px 12px 100px; }
+
+    .page-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+    .page-sub   { font-size: 12px; color: #555; margin-bottom: 20px; }
+    .label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    hr { border: none; border-top: 1px solid #1a1a1a; margin: 16px 0; }
+
+    /* avatars */
+    .avatar-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    .avatar-item {
+      cursor: pointer; border-radius: 8px; overflow: hidden;
+      border: 2px solid transparent; width: 64px; flex-shrink: 0;
+      background: none; padding: 0;
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    }
+    .avatar-item.active { border-color: #fff; }
+    .avatar-item img { width: 64px; height: 85px; object-fit: cover; display: block; background: #111; }
+    .avatar-item .av-lbl { text-align: center; font-size: 10px; padding: 4px 2px; background: #111; color: #888; }
+
+    /* model tabs */
+    .tab-row { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 20px; }
+    .pill {
+      background: #1a1a1a; color: #999; border: 1px solid #2a2a2a;
+      border-radius: 20px; padding: 6px 16px; font-size: 13px;
+      cursor: pointer; white-space: nowrap;
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    }
+    .pill.active { background: #fff; color: #000; border-color: #fff; font-weight: 600; }
+
+    /* template block */
+    .tmpl-block { margin-bottom: 28px; }
+    .tmpl-no { font-size: 12px; color: #555; margin-bottom: 8px; }
+
+    /* scroll row */
+    .versions-row {
+      display: flex; gap: 8px; overflow-x: auto;
+      padding-bottom: 4px; scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch; align-items: flex-start;
+    }
+    .versions-row::-webkit-scrollbar { height: 3px; }
+    .versions-row::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+    @media (max-width: 520px) { .versions-row { flex-wrap: wrap; overflow-x: visible; } }
+
+    /* version card */
+    .ver-card {
+      background: #0d0d0d; border-radius: 8px; overflow: hidden;
+      flex-shrink: 0; width: 220px; scroll-snap-align: start;
+      border: 2px solid transparent; transition: border-color .15s;
+    }
+    @media (max-width: 520px) { .ver-card { width: calc(50% - 4px); } }
+    .ver-card.best-picked { border-color: #4f4; }
+    .ver-card img { width: 100%; height: auto; display: block; object-fit: contain; background: #151515; }
+    .ver-lbl { text-align: center; font-size: 13px; font-weight: 700; color: #fff; padding: 6px 4px 3px; }
+
+    /* vote criteria – dropdown style */
+    .crit-block { border-top: 1px solid #1a1a1a; padding: 6px 8px 8px; display: flex; flex-direction: column; gap: 5px; }
+    .crit-row { display: flex; align-items: center; gap: 6px; }
+    .crit-label { font-size: 10px; color: #888; white-space: nowrap; flex: 0 0 56px; }
+    .crit-select {
+      flex: 1; background: #1a1a1a; color: #ccc; border: 1px solid #2a2a2a;
+      border-radius: 5px; font-size: 10px; padding: 4px 6px;
+      cursor: pointer; outline: none; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23666'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 6px center;
+      padding-right: 18px;
+    }
+    .crit-select:focus { border-color: #555; }
+    .crit-select.answered { border-color: #2a4a2a; color: #5c5; background-color: #0d1a0d; }
+
+    /* scroll fade hint */
+    .scroll-wrap { position: relative; }
+    .scroll-fade {
+      pointer-events: none; position: absolute; top: 0; right: 0; bottom: 4px;
+      width: 48px;
+      background: linear-gradient(to right, transparent, #000 90%);
+      border-radius: 0 8px 8px 0;
+      display: flex; align-items: center; justify-content: flex-end; padding-right: 6px;
+    }
+    .scroll-fade::after { content: '›'; font-size: 22px; color: #666; }
+    .scroll-wrap.at-end .scroll-fade { display: none; }
+
+    /* lightbox */
+    #lb { display:none; position:fixed; inset:0; z-index:500; background:rgba(0,0,0,.93); align-items:center; justify-content:center; }
+    #lb.open { display:flex; }
+    #lb-img { max-width:92vw; max-height:88vh; object-fit:contain; border-radius:6px; }
+    #lb-close { position:fixed; top:16px; right:20px; font-size:26px; color:#888; background:none; border:none; cursor:pointer; }
+    #lb-close:hover { color:#fff; }
+
+    /* best bar (above images) */
+    .best-bar {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      background: #111; border: 1.5px solid #333; border-radius: 10px;
+      padding: 10px 14px; margin-bottom: 10px;
+    }
+    .best-bar-q {
+      font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap;
+    }
+    .best-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+    .best-btn {
+      background: #222; color: #aaa; border: 1.5px solid #444;
+      border-radius: 8px; padding: 8px 18px; font-size: 15px; font-weight: 700;
+      cursor: pointer; min-width: 48px; text-align: center;
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+      transition: background .1s, color .1s;
+    }
+    .best-btn.voted { background: #1a3a1a; color: #4f4; border-color: #4f4; }
+
+    /* submit bar */
+    .submit-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+      background: #111; border-top: 1px solid #222;
+      padding: 12px 16px; display: flex; gap: 10px; align-items: center;
+    }
+    .name-input {
+      flex: 1; background: #1a1a1a; color: #fff; border: 1px solid #333;
+      border-radius: 8px; padding: 10px 12px; font-size: 14px;
+      outline: none; min-width: 0;
+    }
+    .name-input::placeholder { color: #555; }
+    .name-input:focus { border-color: #666; }
+    .submit-btn {
+      background: #fff; color: #000; border: none; border-radius: 8px;
+      padding: 10px 20px; font-size: 14px; font-weight: 700;
+      cursor: pointer; white-space: nowrap; flex-shrink: 0;
+      touch-action: manipulation;
+    }
+    .submit-btn:disabled { background: #333; color: #666; cursor: not-allowed; }
+    .submit-btn.loading { background: #444; color: #aaa; }
+
+    /* toast */
+    .toast {
+      position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
+      background: #1a2a1a; color: #4f4; border: 1px solid #3a5a3a;
+      border-radius: 10px; padding: 12px 24px; font-size: 14px; font-weight: 600;
+      white-space: pre-line; text-align: center; max-width: 90vw;
+      z-index: 300; opacity: 0; transition: opacity .3s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+    .toast.err { background: #2a1a1a; color: #f55; border-color: #5a3a3a; }
+
+    .empty { color: #444; font-size: 12px; padding: 20px 0; }
+  </style>
+</head>
+<body>
+
+<p class="page-title">盲测</p>
+<p class="page-sub">版本标签已隐藏，请独立评判 · <a href="https://docs.google.com/spreadsheets/d/1NdYW1BuMqZTxIQ_fImzV898jA5we2m0MElGVkFitTWw/edit?gid=1128543592#gid=1128543592" target="_blank" style="color:#4af;text-decoration:none">评估指引 ↗</a></p>
+
+<p class="label">头像</p>
+<div class="avatar-row" id="avatarRow"></div>
+<hr/>
+<p class="label">模型版本</p>
+<div class="tab-row" id="templateTabs"></div>
+<div id="main"></div>
+
+<!-- lightbox -->
+<div id="lb">
+  <button id="lb-close" onclick="document.getElementById('lb').classList.remove('open')">✕</button>
+  <img id="lb-img" src="" alt=""/>
+</div>
+
+<div class="submit-bar">
+  <input class="name-input" id="nameInput" type="text" placeholder="输入你的名字" maxlength="20"/>
+  <button class="submit-btn" id="submitBtn" type="button">提交投票</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbySehfJgKJcUtfeRHVIx5LxUBow0u9vrn4Vtbf5LyY6Sa8q9OZNqvyqvu3CM5XIAZGTVg/exec';
+
+const D = {"avatars": ["https://cf.shopee.sg/id-11134908-822wi-moqqaqwt1lhece", "https://mms.img.susercontent.com/sg-11134253-822zk-mo6e32zmw5xh33", "https://mms.img.susercontent.com/sg-11134253-823qs-momdl8ig9e6lbd", "https://mms.img.susercontent.com/my-11134253-820lf-mozdijzs60hs8a"], "models": ["模版", "商品图"], "styles": {"0": ["Smart Casual", "Athleisure", "Smart Casual", "City Boy", "Cafe Hopping", "Minimal Casual", "Cafe Hopping", "Hiking & Outdoor", "Streetwear", "Cafe Hopping"], "1": ["Modern Batik", "Athleisure", "Streetwear", "Minimal Casual", "Night Out", "Smart Casual", "Minimal Casual", "Gym & Fitness", "Minimal Casual", "Resort Casual"], "2": ["Old Money", "Streetwear", "Gym & Fitness", "Office & Commute", "Streetwear", "Beach Vacation", "Clean Fit", "Cafe Hopping", "Cafe Hopping", "Office & Commute"], "3": ["Old Money", "Streetwear", "Ladylike", "Office & Commute", "Clean Fit", "Clean Fit", "Coquette", "Coquette", "Office & Commute", "Clean Fit"]}, "data": {"0": {"模版": {"design 优化v9（蓝调）": ["https://mms.img.susercontent.com/sg-11134253-823pm-mozbjbeo3k0e8c", "https://mms.img.susercontent.com/sg-11134253-823q5-mozbipzw67m710", "https://mms.img.susercontent.com/sg-11134253-823qs-mozbin1defpc62", "https://mms.img.susercontent.com/sg-11134253-823pu-mozbhfp0m6to7d", "https://mms.img.susercontent.com/sg-11134253-823oh-mozbj2usaakgda", "https://mms.img.susercontent.com/sg-11134253-823o8-mozbnip9wzcwc4", "https://mms.img.susercontent.com/sg-11134253-823q5-mozbikp9rjeo0d", "https://mms.img.susercontent.com/sg-11134253-823qe-mozbn618h53i55", "https://mms.img.susercontent.com/sg-11134253-823ra-mozbjxjucw7401", "https://mms.img.susercontent.com/sg-11134253-823q4-mozbk5o3eosi82"], "Ops -Final -V1 - Prompt5 -多样性 + 换脸自然度 + glance风格": ["https://mms.img.susercontent.com/sg-11134253-823rb-mozenysowftb63", "https://mms.img.susercontent.com/sg-11134253-823p9-mozenj1t32f5e8", "https://mms.img.susercontent.com/sg-11134253-823qk-mozeni14cljg25", "https://mms.img.susercontent.com/sg-11134253-823pg-mozeox1poopa20", "https://mms.img.susercontent.com/sg-11134253-823rg-mozeoxuoyl8t0b", "https://mms.img.susercontent.com/sg-11134253-823q1-mozepb2h4c9835", "https://mms.img.susercontent.com/sg-11134253-823pb-mozephqgp8ng22", "https://mms.img.susercontent.com/sg-11134253-823r1-mozeoxqza7m766", "https://mms.img.susercontent.com/sg-11134253-823rk-mozeormyp1xc78", "https://mms.img.susercontent.com/sg-11134253-823p5-mozeoyjyk45o64"], "Ops -Final -V2 - Prompt4 -少改动模板 + glance风格": ["https://mms.img.susercontent.com/sg-11134253-823r4-mozkwunuizuo69", "https://mms.img.susercontent.com/sg-11134253-823oy-mozkzan8426nf1", "https://mms.img.susercontent.com/sg-11134253-823pp-mozkwy83mbr592", "https://mms.img.susercontent.com/sg-11134253-823q0-mozkx2qxleyp2d", "https://mms.img.susercontent.com/sg-11134253-823pw-mozkytxjuc5of1", "https://mms.img.susercontent.com/sg-11134253-823qv-mozkyr62hwcrc4", "https://mms.img.susercontent.com/sg-11134253-823rb-mozkyj7mxp8i6a", "https://mms.img.susercontent.com/sg-11134253-823on-mozkx002zt36a5", "https://mms.img.susercontent.com/sg-11134253-823qo-mozkzrmsuqz34c", "https://mms.img.susercontent.com/sg-11134253-823p3-mozl06o6vkle8b"], "Ops -Final -V3 - Prompt6 -中等改动，兼容版": ["https://mms.img.susercontent.com/sg-11134253-823rl-mozl5y1lrs3kbf", "https://mms.img.susercontent.com/sg-11134253-823rf-mozl82cwe6fh15", "https://mms.img.susercontent.com/sg-11134253-823qr-mozl7p4blekt71", "https://mms.img.susercontent.com/sg-11134253-823r0-mozl6dcd5eyz80", "https://mms.img.susercontent.com/sg-11134253-823r1-mozl9e6neubv11", "https://mms.img.susercontent.com/sg-11134253-823py-mozl85ile0oxb3", "https://mms.img.susercontent.com/sg-11134253-823pb-mozl7v7lx81u96", "https://mms.img.susercontent.com/sg-11134253-823qg-mozl7vqfft3h20", "https://mms.img.susercontent.com/sg-11134253-823pj-mozl8yxxcm4s2f", "https://mms.img.susercontent.com/sg-11134253-823r0-mozl966yo3648d"], "Ops -Final-v1 (jiapeng)": ["https://mms.img.susercontent.com/sg-11134253-823pg-mozcgnvodjinfc", "https://mms.img.susercontent.com/sg-11134253-823pp-mozch7prve2o30", "https://mms.img.susercontent.com/sg-11134253-823on-mozcgokisnil53", "https://mms.img.susercontent.com/sg-11134253-823pj-mozcf6bggiyqe5", "https://mms.img.susercontent.com/sg-11134253-823qr-mozcgq5u8we88f", "https://mms.img.susercontent.com/sg-11134253-823qb-mozch6l6a1hnbf", "https://mms.img.susercontent.com/sg-11134253-823ow-mozchd8cftoua9", "https://mms.img.susercontent.com/sg-11134253-823qb-mozch6ljcnbh8b", "https://mms.img.susercontent.com/sg-11134253-823po-mozcjdwm4ef6cf", "https://mms.img.susercontent.com/sg-11134253-823pv-mozck0qygsuldc"], "Ops -Final-v2 (jiapeng)": ["https://mms.img.susercontent.com/sg-11134253-823oy-mozd0ftwit4xdf", "https://mms.img.susercontent.com/sg-11134253-823r4-mozd0u36sp3j21", "https://mms.img.susercontent.com/sg-11134253-823o8-mozd0axbabk18b", "https://mms.img.susercontent.com/sg-11134253-823qc-mozd0v3k28lq65", "https://mms.img.susercontent.com/sg-11134253-823q9-mozd0h0vwyz157", "https://mms.img.susercontent.com/sg-11134253-823rn-mozd0tktl9fxe0", "https://mms.img.susercontent.com/sg-11134253-823pr-mozd0fvosah9d5", "https://mms.img.susercontent.com/sg-11134253-823qv-mozd0dc1dwr0f2", "https://mms.img.susercontent.com/sg-11134253-823rk-mozd3hrrnsp978", "https://mms.img.susercontent.com/sg-11134253-823qn-mozd3bh2spvl69"], "Ops -Final-v3(jiapeng)-效果最好": ["https://mms.img.susercontent.com/sg-11134253-823rn-mozdmxsw3c3k34", "https://mms.img.susercontent.com/sg-11134253-823q5-mozdn7z0r8jl8f", "https://mms.img.susercontent.com/sg-11134253-823rh-mozdnjuohwr28c", "https://mms.img.susercontent.com/sg-11134253-823oe-mozdnoiufy0w12", "https://mms.img.susercontent.com/sg-11134253-823r1-mozdn7ptzwg18b", "https://mms.img.susercontent.com/sg-11134253-823qg-mozdn6ehtssuff", "https://mms.img.susercontent.com/sg-11134253-823ob-mozdn10o4cg06a", "https://mms.img.susercontent.com/sg-11134253-823pd-mozdlvf1zyteec", "https://mms.img.susercontent.com/sg-11134253-823rb-mozdpezxc9hpf5", "https://mms.img.susercontent.com/sg-11134253-823r3-mozdqdfkn6de67"], "design V1": ["https://mms.img.susercontent.com/sg-11134253-823q7-mp07hnvjyf4c01", "https://mms.img.susercontent.com/sg-11134253-823oq-mp07hqng8w0105", "https://mms.img.susercontent.com/sg-11134253-823om-mp07ht29mgwce1", "https://mms.img.susercontent.com/sg-11134253-823rh-mp07hvdrpzpo75", "https://mms.img.susercontent.com/sg-11134253-823ra-mp07hfuohk3y17", "https://mms.img.susercontent.com/sg-11134253-823oa-mp07hitt5cln0e", "https://mms.img.susercontent.com/sg-11134253-823pe-mp07hs3f54aqc4", "https://mms.img.susercontent.com/sg-11134253-823rd-mp07hghfwwlrf5", "https://mms.img.susercontent.com/sg-11134253-823ov-mp07l13ca51p40", "https://mms.img.susercontent.com/sg-11134253-823qp-mp07kp1hv1tt4d"], "Glance": ["https://mms.img.susercontent.com/sg-11134253-823p4-mp0lz745qvpc59", "https://mms.img.susercontent.com/sg-11134253-823pt-mp0ly60ztnny3e", "https://mms.img.susercontent.com/sg-11134253-823qb-mp0lzczf7z0g04", "https://mms.img.susercontent.com/sg-11134253-823ra-mp0lyrgs9rm706", "https://mms.img.susercontent.com/sg-11134253-823q8-mp0lxhab3bij74", "https://mms.img.susercontent.com/sg-11134253-823qm-mp0lxfwbsnbfe1", "https://mms.img.susercontent.com/sg-11134253-823pt-mp0lzguuzchsb4", "https://mms.img.susercontent.com/sg-11134253-823pm-mp0ly87ctgcvd0", "https://mms.img.susercontent.com/sg-11134253-823pj-mp0lys836p6o4a", "https://mms.img.susercontent.com/sg-11134253-823qn-mp0lyzdayqdrf6"]}, "商品图": {"设计优化v2": ["https://mms.img.susercontent.com/sg-11134253-823qm-mozenxyvcikvfd", "https://mms.img.susercontent.com/sg-11134253-823r6-mozen6mch6of76", "https://mms.img.susercontent.com/sg-11134253-823qe-mozencryi0b191", "https://mms.img.susercontent.com/sg-11134253-823r6-mozeo5jccljjab", "https://mms.img.susercontent.com/sg-11134253-823rg-mozeodydedce95", "https://mms.img.susercontent.com/sg-11134253-823qn-mozenl4vjhu723", "https://mms.img.susercontent.com/sg-11134253-823r8-mozen6spmrykb7", "https://mms.img.susercontent.com/sg-11134253-823qw-mozenzewcljh33", "https://mms.img.susercontent.com/sg-11134253-823rm-mozeqhmjpu6ne9", "https://mms.img.susercontent.com/sg-11134253-823qc-mozeqhb5fsox70"], "ops 优化1版 - kk v3中文版": ["https://mms.img.susercontent.com/sg-11134253-823pq-mp0hdcofwmbv2e", "https://mms.img.susercontent.com/sg-11134253-823or-mp0hdcny18ng07", "https://mms.img.susercontent.com/sg-11134253-823pu-mp0hddnojthd50", "https://mms.img.susercontent.com/sg-11134253-823rb-mp0hdq8l9l3547", "https://mms.img.susercontent.com/sg-11134253-823r3-mp0hdgafb40c04", "https://mms.img.susercontent.com/sg-11134253-823qv-mp0hdcqys2yq94", "https://mms.img.susercontent.com/sg-11134253-823oj-mp0hdy6cimtq23", "https://mms.img.susercontent.com/sg-11134253-823r5-mp0hgfypj37z6d", "https://mms.img.susercontent.com/sg-11134253-823q6-mp0hhdxwm0ht28", "https://mms.img.susercontent.com/sg-11134253-823p0-mp0hi9nfxfkbe9"], "ops 优化2版 - ops v5": ["https://mms.img.susercontent.com/sg-11134253-823p3-mp0gcfizke8ce4", "https://mms.img.susercontent.com/sg-11134253-823qt-mp0gbvxxhhj6e4", "https://mms.img.susercontent.com/sg-11134253-823pe-mp0gc05tc0sr03", "https://mms.img.susercontent.com/sg-11134253-823ol-mp0gbsi9bpq902", "https://mms.img.susercontent.com/sg-11134253-823ol-mp0gdqbwmepudb", "https://mms.img.susercontent.com/sg-11134253-823o8-mp0gcamgikgb9e", "https://mms.img.susercontent.com/sg-11134253-823pc-mp0gc1t4gmx763", "https://mms.img.susercontent.com/sg-11134253-823qp-mp0gbvinhcej8d", "https://mms.img.susercontent.com/sg-11134253-823rm-mp0gf3jbi9lafd", "https://mms.img.susercontent.com/sg-11134253-823pk-mp0ggjd8vjf1d1"], "ops 优化3版 - kk v4": ["https://mms.img.susercontent.com/sg-11134253-823pg-mp0ic5wbmuq406", "https://mms.img.susercontent.com/sg-11134253-823pf-mp0icwvde1hda9", "https://mms.img.susercontent.com/sg-11134253-823pr-mp0ic38ya9e7ef", "https://mms.img.susercontent.com/sg-11134253-823pu-mp0ic4ykvhu3f3", "https://mms.img.susercontent.com/sg-11134253-823q5-mp0ic8z9hfya5e", "https://mms.img.susercontent.com/sg-11134253-823oi-mp0id0u0ketne9", "https://mms.img.susercontent.com/sg-11134253-823os-mp0ic11uycy4b4", "https://mms.img.susercontent.com/sg-11134253-823q8-mp0ic8yzf1fm45", "https://mms.img.susercontent.com/sg-11134253-823pc-mp0ifwimus5rb9", "https://mms.img.susercontent.com/sg-11134253-823r6-mp0ihb1wbnkb5c"], "ops 优化4版": ["https://mms.img.susercontent.com/sg-11134253-823qp-mp0hys0ton4bcf", "https://mms.img.susercontent.com/sg-11134253-823on-mp0hyid5kz64d8", "https://mms.img.susercontent.com/sg-11134253-823q3-mp0hyid8737xd5", "https://mms.img.susercontent.com/sg-11134253-823p6-mp0hy8omunez5f", "https://mms.img.susercontent.com/sg-11134253-823r2-mp0hycweepse5a", "https://mms.img.susercontent.com/sg-11134253-823ph-mp0hzg9ftki43c", "https://mms.img.susercontent.com/sg-11134253-823qz-mp0hyexktery24", "https://mms.img.susercontent.com/sg-11134253-823qa-mp0hzxec579od9", "https://mms.img.susercontent.com/sg-11134253-823rl-mp0i31odezghe6", "https://mms.img.susercontent.com/sg-11134253-823ph-mp0i2tz00dfmdc"]}}, "1": {"模版": {"design 优化v9（蓝调）": ["https://mms.img.susercontent.com/sg-11134253-823rc-mp0glxiw2wb318", "https://mms.img.susercontent.com/sg-11134253-823rg-mp0gmh8jirrgfb", "https://mms.img.susercontent.com/sg-11134253-823qo-mp0gmdau4u8e7c", "https://mms.img.susercontent.com/sg-11134253-823r2-mp0gm1qepaml01", "https://mms.img.susercontent.com/sg-11134253-823qn-mp0gltygifpe79", "https://mms.img.susercontent.com/sg-11134253-823q4-mp0glxzedc0c12", "https://mms.img.susercontent.com/sg-11134253-823qm-mp0gltyhdc7i01", "https://mms.img.susercontent.com/sg-11134253-823oa-mp0gm3j54934a1", "https://mms.img.susercontent.com/sg-11134253-823q7-mp0gp06zz0ge83", "https://mms.img.susercontent.com/sg-11134253-823rs-mp0gou2szhn0bd"], "Ops -Final -V1 - Prompt5 -多样性 + 换脸自然度 + glance风格": ["https://mms.img.susercontent.com/sg-11134253-823pj-mp0pk3ai76rv6d", "https://mms.img.susercontent.com/sg-11134253-823rc-mp0pife6p2q487", "https://mms.img.susercontent.com/sg-11134253-823p7-mp0pk0tlczkf0a", "https://mms.img.susercontent.com/sg-11134253-823pp-mp0pib9mzevf81", "https://mms.img.susercontent.com/sg-11134253-823p0-mp0pkb7s8s1u62", "https://mms.img.susercontent.com/sg-11134253-823qy-mp0pih67ebd867", "https://mms.img.susercontent.com/sg-11134253-823p3-mp0pkk13wnwvb9", "https://mms.img.susercontent.com/sg-11134253-823om-mp0pk0m3joxub5", "https://mms.img.susercontent.com/sg-11134253-823r1-mp0pko41bpqm5c", "https://mms.img.susercontent.com/sg-11134253-823pt-mp0pl8zuz3sx29"], "Ops -Final -V2 - Prompt4 -少改动模板 + glance风格": ["https://mms.img.susercontent.com/sg-11134253-823q4-mp0pn5592yhb8f", "https://mms.img.susercontent.com/sg-11134253-823p0-mp0pomix0h6zb2", "https://mms.img.susercontent.com/sg-11134253-823qo-mp0pok6o5csic0", "https://mms.img.susercontent.com/sg-11134253-823om-mp0pmpq2e4g2e9", "https://mms.img.susercontent.com/sg-11134253-823p7-mp0pmxvbf0n65f", "https://mms.img.susercontent.com/sg-11134253-823rq-mp0pom2gwpajc2", "https://mms.img.susercontent.com/sg-11134253-823qd-mp0pmrsjxngh74", "https://mms.img.susercontent.com/sg-11134253-823qn-mp0pn3v5jsi46b", "https://mms.img.susercontent.com/sg-11134253-823q9-mp0po63ismq72e", "https://mms.img.susercontent.com/sg-11134253-823og-mp0ppkmpou8b36"], "Ops -Final -V3 - Prompt6 -中等改动，兼容版": ["https://mms.img.susercontent.com/sg-11134253-823qe-mp0p7f1hl34d56", "https://mms.img.susercontent.com/sg-11134253-823os-mp0p6t1nyknj23", "https://mms.img.susercontent.com/sg-11134253-823rp-mp0p8sre8oi679", "https://mms.img.susercontent.com/sg-11134253-823rd-mp0p6t26gdtse1", "https://mms.img.susercontent.com/sg-11134253-823qm-mp0p6sytgirma1", "https://mms.img.susercontent.com/sg-11134253-823p3-mp0p6szxewaz08", "https://mms.img.susercontent.com/sg-11134253-823r7-mp0p8gg4edjj76", "https://mms.img.susercontent.com/sg-11134253-823pz-mp0p78ij4mxa97", "https://mms.img.susercontent.com/sg-11134253-823qi-mp0partn12xabd", "https://mms.img.susercontent.com/sg-11134253-823rq-mp0p8xlmc6x87e"], "Ops -Final-v1 (jiapeng)": ["https://mms.img.susercontent.com/sg-11134253-823oe-mp0ljgd7ludr47", "https://mms.img.susercontent.com/sg-11134253-823p5-mp0liypuyg3l82", "https://mms.img.susercontent.com/sg-11134253-823qn-mp0lhjxdh8u80c", "https://mms.img.susercontent.com/sg-11134253-823oq-mp0lip0h7evh2a", "https://mms.img.susercontent.com/sg-11134253-823q2-mp0ljgdjuwp8ca", "https://mms.img.susercontent.com/sg-11134253-823qt-mp0lj1l2x0qp3e", "https://mms.img.susercontent.com/sg-11134253-823r9-mp0lj11isge9b2", "https://mms.img.susercontent.com/sg-11134253-823pz-mp0liw143c3w40", "https://mms.img.susercontent.com/sg-11134253-823rq-mp0llrmiq8lce2", "https://mms.img.susercontent.com/sg-11134253-823qt-mp0llvuu5a0w33"], "Ops -Final-v2 (jiapeng)": ["https://mms.img.susercontent.com/sg-11134253-823r3-mp0n0h95b9xc94", "https://mms.img.susercontent.com/sg-11134253-823oa-mp0n0enhc7wvda", "https://mms.img.susercontent.com/sg-11134253-823qq-mp0n08dmd43yf2", "https://mms.img.susercontent.com/sg-11134253-823r3-mp0n1q8tgirmcd", "https://mms.img.susercontent.com/sg-11134253-823pr-mp0mz8mmdu6k87", "https://mms.img.susercontent.com/sg-11134253-823q0-mp0n0tq66olr02", "https://mms.img.susercontent.com/sg-11134253-823pt-mp0n176wacxua5", "https://mms.img.susercontent.com/sg-11134253-823p5-mp0n0hrvh24tfa", "https://mms.img.susercontent.com/sg-11134253-823ro-mp0n2m3xeoe99f", "https://mms.img.susercontent.com/sg-11134253-823oj-mp0n3s39rz7k1f"], "Ops -Final-v3(jiapeng)-效果最好": ["https://mms.img.susercontent.com/sg-11134253-823rh-mp0m7owmu4g0e1", "https://mms.img.susercontent.com/sg-11134253-823rs-mp0m9c0qm0w165", "https://mms.img.susercontent.com/sg-11134253-823pp-mp0m9b6uy8zxaf", "https://mms.img.susercontent.com/sg-11134253-823pr-mp0m9xpce80cb9", "https://mms.img.susercontent.com/sg-11134253-823r0-mp0m9bq0g2de71", "https://mms.img.susercontent.com/sg-11134253-823rb-mp0m97xws7b483", "https://mms.img.susercontent.com/sg-11134253-823ou-mp0m9n0wbi180a", "https://mms.img.susercontent.com/sg-11134253-823oa-mp0m97y4s5q9b5", "https://mms.img.susercontent.com/sg-11134253-823r1-mp0mbmvx0etrb7", "https://mms.img.susercontent.com/sg-11134253-823r4-mp0mcr3is8hua6"], "design V1": ["https://mms.img.susercontent.com/sg-11134253-823oc-mp0fog8rur5s98", "https://mms.img.susercontent.com/sg-11134253-823ps-mp0fnpzy9o26a9", "https://mms.img.susercontent.com/sg-11134253-823pq-mp0fnlhz1gct14", "https://mms.img.susercontent.com/sg-11134253-823q9-mp0fog1yw9vm24", "https://mms.img.susercontent.com/sg-11134253-823ro-mp0fnpvko8aq93", "https://mms.img.susercontent.com/sg-11134253-823p1-mp0fnlom10r3e3", "https://mms.img.susercontent.com/sg-11134253-823pi-mp0foabd4gzlf8", "https://mms.img.susercontent.com/sg-11134253-823p9-mp0fny4c1fda92", "https://mms.img.susercontent.com/sg-11134253-823qe-mp0fsaynv30ubd", "https://mms.img.susercontent.com/sg-11134253-823qk-mp0fr4bk1z4f32"], "Glance": ["https://mms.img.susercontent.com/sg-11134253-823ok-mp0lz17pl34ffa", "https://mms.img.susercontent.com/sg-11134253-823p5-mp0lzcr46mmm81", "https://mms.img.susercontent.com/sg-11134253-823ou-mp0lz7n0v20x33", "https://mms.img.susercontent.com/sg-11134253-823qh-mp0lyzdv0qa764", "https://mms.img.susercontent.com/sg-11134253-823oe-mp0lxb58qg3v08", "https://mms.img.susercontent.com/sg-11134253-823pr-mp0lyugpm13463", "https://mms.img.susercontent.com/sg-11134253-823ol-mp0lzd8eg7im1a", "https://mms.img.susercontent.com/sg-11134253-823ov-mp0lyybyw9vk23", "https://mms.img.susercontent.com/sg-11134253-823oy-mp0lz74ewz6761", "https://mms.img.susercontent.com/sg-11134253-823om-mp0lxdkd2qks47"]}, "商品图": {"设计优化v2": ["https://mms.img.susercontent.com/sg-11134253-823p7-mp0b2hnl4ydc48", "https://mms.img.susercontent.com/sg-11134253-823pf-mp0b1ewe50jm13", "https://mms.img.susercontent.com/sg-11134253-823q7-mp0b1j2e7qj117", "https://mms.img.susercontent.com/sg-11134253-823q4-mp0b1tx1mpl970", "https://mms.img.susercontent.com/sg-11134253-823r3-mp0b1gctb18hc5", "https://mms.img.susercontent.com/sg-11134253-823ph-mp0b1ifvdde558", "https://mms.img.susercontent.com/sg-11134253-823os-mp0b1mxdtkwb3b", "https://mms.img.susercontent.com/sg-11134253-823q2-mp0b1j7r2y32fe", "https://mms.img.susercontent.com/sg-11134253-823ot-mp0b547vvocu7e", "https://mms.img.susercontent.com/sg-11134253-823ol-mp0b5crps3ya06"], "ops 优化1版 - kk v3中文版": ["https://mms.img.susercontent.com/sg-11134253-823q7-mp0hja3cxz41a0", "https://mms.img.susercontent.com/sg-11134253-823rs-mp0hhw5mhwcvc6", "https://mms.img.susercontent.com/sg-11134253-823q6-mp0hhicgtbludc", "https://mms.img.susercontent.com/sg-11134253-823oc-mp0hjmha9g5d4b", "https://mms.img.susercontent.com/sg-11134253-823r4-mp0hiuqpzgn51e", "https://mms.img.susercontent.com/sg-11134253-823pf-mp0hhwj28vm3d7", "https://mms.img.susercontent.com/sg-11134253-823qt-mp0hjw1et9mp95", "https://mms.img.susercontent.com/sg-11134253-823p5-mp0hhllbgy6919", "https://mms.img.susercontent.com/sg-11134253-823ps-mp0hlatovkzme9", "https://mms.img.susercontent.com/sg-11134253-823pw-mp0hl50doagxc4"], "ops 优化2版 - ops v5": ["https://mms.img.susercontent.com/sg-11134253-823om-mp0gofrtg8hs92", "https://mms.img.susercontent.com/sg-11134253-823qg-mp0gn5524xe52a", "https://mms.img.susercontent.com/sg-11134253-823od-mp0gnxfdn30rb4", "https://mms.img.susercontent.com/sg-11134253-823op-mp0gnh2qetqme9", "https://mms.img.susercontent.com/sg-11134253-823r2-mp0gowt4b5e7eb", "https://mms.img.susercontent.com/sg-11134253-823od-mp0gnh5jqqkrd5", "https://mms.img.susercontent.com/sg-11134253-823os-mp0gn9cval1df1", "https://mms.img.susercontent.com/sg-11134253-823qv-mp0gnt9rvx1pb3", "https://mms.img.susercontent.com/sg-11134253-823oa-mp0gqkfxw6x8c3", "https://mms.img.susercontent.com/sg-11134253-823ql-mp0gqv862c5e73"], "ops 优化3版 - kk v4": ["https://mms.img.susercontent.com/sg-11134253-823qv-mp0pvr0g0pa84b", "https://mms.img.susercontent.com/sg-11134253-823qu-mp0puz3q2v4cf5", "https://mms.img.susercontent.com/sg-11134253-823pn-mp0pwl91d3iada", "https://mms.img.susercontent.com/sg-11134253-823oq-mp0pv4f6ndvk08", "https://mms.img.susercontent.com/sg-11134253-823ol-mp0pv4echjbg2e", "https://mms.img.susercontent.com/sg-11134253-823qr-mp0pwuqm0xl9f1", "https://mms.img.susercontent.com/sg-11134253-823oy-mp0pwq0l31n211", "https://mms.img.susercontent.com/sg-11134253-823oj-mp0px749idxo7f", "https://mms.img.susercontent.com/sg-11134253-823ph-mp0pz0g38mpt15", "https://mms.img.susercontent.com/sg-11134253-823pa-mp0pz5qngn4e9f"], "ops 优化4版": ["https://mms.img.susercontent.com/sg-11134253-823rg-mp0i7p3j2lfva4", "https://mms.img.susercontent.com/sg-11134253-823pz-mp0i7drg8ky336", "https://mms.img.susercontent.com/sg-11134253-823ri-mp0i812nsd1rc0", "https://mms.img.susercontent.com/sg-11134253-823qu-mp0i7zn1ni1794", "https://mms.img.susercontent.com/sg-11134253-823r8-mp0i8skz203wad", "https://mms.img.susercontent.com/sg-11134253-823qr-mp0i82dp883y46", "https://mms.img.susercontent.com/sg-11134253-823os-mp0i82x881zfbd", "https://mms.img.susercontent.com/sg-11134253-823oa-mp0i9c5oyp73c8", "https://mms.img.susercontent.com/sg-11134253-823og-mp0ibr095hc2fe", "https://mms.img.susercontent.com/sg-11134253-823q6-mp0ib1ckrzeoc2"]}}, "2": {"模版": {"design 优化v9（蓝调）": ["https://mms.img.susercontent.com/sg-11134253-823ot-mp0hhpvxoopa0b", "https://mms.img.susercontent.com/sg-11134253-823p2-mp0bqksukah7b8", "https://mms.img.susercontent.com/sg-11134253-823qj-mp0bp0i2s1dtf6", "https://mms.img.susercontent.com/sg-11134253-823r5-mp0bqktallvk0e", "https://mms.img.susercontent.com/sg-11134253-823op-mp0bquccbsb026", "https://mms.img.susercontent.com/sg-11134253-823qv-mp0hhgi8trf090", "https://mms.img.susercontent.com/sg-11134253-823q2-mp0bqgqlrkzx7f", "https://mms.img.susercontent.com/sg-11134253-823px-mp0bqhi64efi28", "https://mms.img.susercontent.com/sg-11134253-823qd-mp0btaub48pb98", "https://mms.img.susercontent.com/sg-11134253-823r3-mp0btf99n28d47"], "Ops -Final -V1 - Prompt5 -多样性 + 换脸自然度 + glance风格": ["https://mms.img.susercontent.com/sg-11134253-823pg-mp0pkbqlhj4135", "https://mms.img.susercontent.com/sg-11134253-823op-mp0plwhwawox05", "https://mms.img.susercontent.com/sg-11134253-823qr-mp0pkidgq0ap08", "https://mms.img.susercontent.com/sg-11134253-823rt-mp0pm3wqiya300", "https://mms.img.susercontent.com/sg-11134253-823p0-mp0pkd5qq7t8a6", "https://mms.img.susercontent.com/sg-11134253-823qu-mp0plwj5zrpc85", "https://mms.img.susercontent.com/sg-11134253-823pa-mp0pka9m14pb4e", "https://mms.img.susercontent.com/sg-11134253-823p0-mp0pm397iia42a", "https://mms.img.susercontent.com/sg-11134253-823of-mp0plnk0zv2a7f", "https://mms.img.susercontent.com/sg-11134253-823p2-mp0pnokzz21bb0"], "Ops -Final -V2 - Prompt4 -少改动模板 + glance风格": ["https://mms.img.susercontent.com/sg-11134253-823p4-mp0pp7tj9kp80a", "https://mms.img.susercontent.com/sg-11134253-823ou-mp0pone3rojkad", "https://mms.img.susercontent.com/sg-11134253-823qn-mp0poxdz3ncy62", "https://mms.img.susercontent.com/sg-11134253-823on-mp0pomv6s2yzb0", "https://mms.img.susercontent.com/sg-11134253-823p7-mp0poz318u8e3c", "https://mms.img.susercontent.com/sg-11134253-823on-mp0pnbus3vuqe4", "https://mms.img.susercontent.com/sg-11134253-823oy-mp0pooch5selc6", "https://mms.img.susercontent.com/sg-11134253-823rq-mp0pn3scvrbg57", "https://mms.img.susercontent.com/sg-11134253-823p3-mp0pqhyf7dot77", "https://mms.img.susercontent.com/sg-11134253-823pc-mp0pqi9lohkx31"], "Ops -Final -V3 - Prompt6 -中等改动，兼容版": ["https://mms.img.susercontent.com/sg-11134253-823qn-mp0pkhrwetcc90", "https://mms.img.susercontent.com/sg-11134253-823od-mp0pjmwk9jpnf9", "https://mms.img.susercontent.com/sg-11134253-823o9-mp0phymolon62c", "https://mms.img.susercontent.com/sg-11134253-823qr-mp0pjhjhk5xr9c", "https://mms.img.susercontent.com/sg-11134253-823r7-mp0pjwhb4u1a84", "https://mms.img.susercontent.com/sg-11134253-823oi-mp0pk12yy51nf7", "https://mms.img.susercontent.com/sg-11134253-823pe-mp0pjnrisd8r04", "https://mms.img.susercontent.com/sg-11134253-823pg-mp0pki98tngi28", "https://mms.img.susercontent.com/sg-11134253-823pg-mp0pl8ofbwg119", "https://mms.img.susercontent.com/sg-11134253-823om-mp0pl2pvzbij59"], "Ops -Final-v1 (jiapeng)": ["https://mms.img.susercontent.com/sg-11134253-823rp-mp0liwpatte682", "https://mms.img.susercontent.com/sg-11134253-823po-mp0ljofwjqby8e", "https://mms.img.susercontent.com/sg-11134253-823ql-mp0lk3exgzcw98", "https://mms.img.susercontent.com/sg-11134253-823qo-mp0lj30utte62a", "https://mms.img.susercontent.com/sg-11134253-823rs-mp0lj61y6ux8f1", "https://mms.img.susercontent.com/sg-11134253-823rt-mp0liuxcs1s2b8", "https://mms.img.susercontent.com/sg-11134253-823qp-mp0lkq8lcpal92", "https://mms.img.susercontent.com/sg-11134253-823q4-mp0lioj9337y09", "https://mms.img.susercontent.com/sg-11134253-823qm-mp0lnbyoqakg8f", "https://mms.img.susercontent.com/sg-11134253-823pa-mp0lnbxr3h1d7a"], "Ops -Final-v2 (jiapeng)": ["https://mms.img.susercontent.com/sg-11134253-823oj-mp0mqep9s2drb9", "https://mms.img.susercontent.com/sg-11134253-823rc-mp0mq33mkhl88f", "https://mms.img.susercontent.com/sg-11134253-823qk-mp0moj2dy7m7da", "https://mms.img.susercontent.com/sg-11134253-823r0-mp0mq3sfl159dd", "https://mms.img.susercontent.com/sg-11134253-823oj-mp0mq9176x3592", "https://mms.img.susercontent.com/sg-11134253-823og-mp0mqwlm1qtn07", "https://mms.img.susercontent.com/sg-11134253-823pm-mp0mq92v4he7ee", "https://mms.img.susercontent.com/sg-11134253-823om-mp0mqet7ynsy83", "https://mms.img.susercontent.com/sg-11134253-823q7-mp0msfn03bbj05", "https://mms.img.susercontent.com/sg-11134253-823r4-mp0ms3h4n1mpde"], "Ops -Final-v3(jiapeng)-效果最好": ["https://mms.img.susercontent.com/sg-11134253-823qm-mp0m8e6rd2bx1c", "https://mms.img.susercontent.com/sg-11134253-823qz-mp0m8cd7erylda", "https://mms.img.susercontent.com/sg-11134253-823py-mp0m886q4n41c2", "https://mms.img.susercontent.com/sg-11134253-823ou-mp0m8btaivwie0", "https://mms.img.susercontent.com/sg-11134253-823rs-mp0m8jvykgsh97", "https://mms.img.susercontent.com/sg-11134253-823pw-mp0m8bkteex85c", "https://mms.img.susercontent.com/sg-11134253-823pv-mp0m8k0cwmwy24", "https://mms.img.susercontent.com/sg-11134253-823ps-mp0m8gcgvaq5ca", "https://mms.img.susercontent.com/sg-11134253-823qx-mp0mcoek46xb48", "https://mms.img.susercontent.com/sg-11134253-823rc-mp0mbxr8chlac1"], "design V1": ["https://mms.img.susercontent.com/sg-11134253-823r4-mp0fo502zpxn52", "https://mms.img.susercontent.com/sg-11134253-823og-mp0fo9al179dd8", "https://mms.img.susercontent.com/sg-11134253-823qu-mp0fnwjfq6tdd0", "https://mms.img.susercontent.com/sg-11134253-823qk-mp0fpgwh3myz3d", "https://mms.img.susercontent.com/sg-11134253-823rp-mp0fpc8mcqoed6", "https://mms.img.susercontent.com/sg-11134253-823rb-mp0fpnkk6wwf07", "https://mms.img.susercontent.com/sg-11134253-823ps-mp0foknlcf0g2c", "https://mms.img.susercontent.com/sg-11134253-823pz-mp0fny4g0paa06", "https://mms.img.susercontent.com/sg-11134253-823q3-mp0frg21wttuc6", "https://mms.img.susercontent.com/sg-11134253-823pp-mp0frafxr3lu7d"], "Glance": ["https://mms.img.susercontent.com/sg-11134253-823qy-mp0m03ai05xrc7", "https://mms.img.susercontent.com/sg-11134253-823pa-mp0lzkhoz6ku6f", "https://mms.img.susercontent.com/sg-11134253-823o9-mp0lz7484kcuc2", "https://mms.img.susercontent.com/sg-11134253-823ql-mp0lz756noy4c9", "https://mms.img.susercontent.com/sg-11134253-823q9-mp0m1gmkqubwfb", "https://mms.img.susercontent.com/sg-11134253-823q6-mp0m0s6w38y784", "https://mms.img.susercontent.com/sg-11134253-823q2-mp0m19zh1jwu48", "https://mms.img.susercontent.com/sg-11134253-823p5-mp0m16p2bdov84", "https://mms.img.susercontent.com/sg-11134253-823q3-mp0m1sq6kgsvac", "https://mms.img.susercontent.com/sg-11134253-823r2-mp0m293jcqgwf3"]}, "商品图": {"设计优化v2": ["https://mms.img.susercontent.com/sg-11134253-823og-mp0fnigakhkxcf", "https://mms.img.susercontent.com/sg-11134253-823qh-mp0fnc350lxo5a", "https://mms.img.susercontent.com/sg-11134253-823pd-mp0fopk8udjhc4", "https://mms.img.susercontent.com/sg-11134253-823r4-mp0fn7qcewhsff", "https://mms.img.susercontent.com/sg-11134253-823pa-mp0fnerlp3pdd2", "https://mms.img.susercontent.com/sg-11134253-823r7-mp0fn1pjr023f9", "https://mms.img.susercontent.com/sg-11134253-823ra-mp0fnlwy2vwh06", "https://mms.img.susercontent.com/sg-11134253-823r4-mp0fn90v5vyab1", "https://mms.img.susercontent.com/sg-11134253-823pl-mp0fqj2li22o46", "https://mms.img.susercontent.com/sg-11134253-823r1-mp0fqv6pfhn2b5"], "ops 优化1版 - kk v3中文版": ["https://mms.img.susercontent.com/sg-11134253-823p7-mp0hdr5fda8ea1", "https://mms.img.susercontent.com/sg-11134253-823qi-mp0hdmr3mscvc9", "https://mms.img.susercontent.com/sg-11134253-823pi-mp0hc9v8c07636", "https://mms.img.susercontent.com/sg-11134253-823pw-mp0hdmtwatjj35", "https://mms.img.susercontent.com/sg-11134253-823op-mp0hdgnzz5zhb3", "https://mms.img.susercontent.com/sg-11134253-823p6-mp0hcn3aadce6b", "https://mms.img.susercontent.com/sg-11134253-823r9-mp0heolk2rkd94", "https://mms.img.susercontent.com/sg-11134253-823os-mp0hcojwwlc27e", "https://mms.img.susercontent.com/sg-11134253-823p5-mp0hfjr4shlb72", "https://mms.img.susercontent.com/sg-11134253-823r3-mp0heozfh24s17"], "ops 优化2版 - ops v5": ["https://mms.img.susercontent.com/sg-11134253-823oo-mp0guqu2wwsufc", "https://mms.img.susercontent.com/sg-11134253-823q0-mp0guxvf785d3c", "https://mms.img.susercontent.com/sg-11134253-823pu-mp0gv7npodn1f3", "https://mms.img.susercontent.com/sg-11134253-823p6-mp0gvbs77c3wbb", "https://mms.img.susercontent.com/sg-11134253-823oq-mp0gv2mggt8h72", "https://mms.img.susercontent.com/sg-11134253-823pk-mp0gv2m08gzm1b", "https://mms.img.susercontent.com/sg-11134253-823qw-mp0gv68qsnikea", "https://mms.img.susercontent.com/sg-11134253-823qn-mp0gvl5tkemn01", "https://mms.img.susercontent.com/sg-11134253-823ob-mp0gzfzv7mdrc0", "https://mms.img.susercontent.com/sg-11134253-823rc-mp0gywaj5v5sbc"], "ops 优化3版 - kk v4": ["https://mms.img.susercontent.com/sg-11134253-823qo-mp0icenu95vw28", "https://mms.img.susercontent.com/sg-11134253-823q5-mp0ibybaazgscf", "https://mms.img.susercontent.com/sg-11134253-823oz-mp0ibns5vz0sf8", "https://mms.img.susercontent.com/sg-11134253-823rh-mp0idqe1zwgec9", "https://mms.img.susercontent.com/sg-11134253-823qh-mp0ifkfkjg2539", "https://mms.img.susercontent.com/sg-11134253-823qr-mp0ic36ayo0061", "https://mms.img.susercontent.com/sg-11134253-823po-mp0id6ddfbbf6e", "https://mms.img.susercontent.com/sg-11134253-823pk-mp0idglytf5t97", "https://mms.img.susercontent.com/sg-11134253-823oi-mp0idcnf2m80ab", "https://mms.img.susercontent.com/sg-11134253-823pd-mp0igh5ucge96a"], "ops 优化4版": ["https://mms.img.susercontent.com/sg-11134253-823ql-mp0hq6c1p24se4", "https://mms.img.susercontent.com/sg-11134253-823rq-mp0honbjhnguc7", "https://mms.img.susercontent.com/sg-11134253-823r5-mp0hr1bqce1bea", "https://mms.img.susercontent.com/sg-11134253-823oq-mp0hoi7p2ccrf1", "https://mms.img.susercontent.com/sg-11134253-823pp-mp0hp4o1ygaza7", "https://mms.img.susercontent.com/sg-11134253-823r1-mp0hqdl2s3r698", "https://mms.img.susercontent.com/sg-11134253-823pm-mp0hqp7lsfsy08", "https://mms.img.susercontent.com/sg-11134253-823o9-mp0hox125o9939", "https://mms.img.susercontent.com/sg-11134253-823ot-mp0huardwwzw5d", "https://mms.img.susercontent.com/sg-11134253-823oi-mp0ht6b3eplaf9"]}}, "3": {"模版": {"design 优化v9（蓝调）": ["https://mms.img.susercontent.com/sg-11134253-823py-mp0gn0fy0em9c2", "https://mms.img.susercontent.com/sg-11134253-823rh-mp0glq9wzhmqf3", "https://mms.img.susercontent.com/sg-11134253-823rd-mp0glf5fjwuac8", "https://mms.img.susercontent.com/sg-11134253-823op-mp0go2sday2qa6", "https://mms.img.susercontent.com/sg-11134253-823pt-mp0gloehvrwgd4", "https://mms.img.susercontent.com/sg-11134253-823pn-mp0gla8uxwcr4c", "https://mms.img.susercontent.com/sg-11134253-823r3-mp0gn1xcvnd8e4", "https://mms.img.susercontent.com/sg-11134253-823of-mp0gm2gigmj0c7", "https://mms.img.susercontent.com/sg-11134253-823o8-mp0go9dvlz4b24", "https://mms.img.susercontent.com/sg-11134253-823ri-mp0gp9npvz0g4e"], "Ops -Final -V1 - Prompt5 -多样性 + 换脸自然度 + glance风格": ["https://mms.img.susercontent.com/sg-11134253-823ri-mp0pg2di5zbh2f", "https://mms.img.susercontent.com/sg-11134253-823pc-mp0pfsc016oc6d", "https://mms.img.susercontent.com/sg-11134253-823qo-mp0pgko5y1aac1", "https://mms.img.susercontent.com/sg-11134253-823o8-mp0pfnvgdxqn93", "https://mms.img.susercontent.com/sg-11134253-823pl-mp0pfk1la39e17", "https://mms.img.susercontent.com/sg-11134253-823om-mp0pg9g0zf9q46", "https://mms.img.susercontent.com/sg-11134253-823pf-mp0ph79pnocs27", "https://mms.img.susercontent.com/sg-11134253-823o8-mp0ph8yvb8r0b4", "https://mms.img.susercontent.com/sg-11134253-823ov-mp0ph62dnt3667", "https://mms.img.susercontent.com/sg-11134253-823ou-mp0pja9aew3w4b"], "Ops -Final -V2 - Prompt4 -少改动模板 + glance风格": ["https://mms.img.susercontent.com/sg-11134253-823qv-mp0p389ykidr2f", "https://mms.img.susercontent.com/sg-11134253-823qd-mp0p353caj9dbb", "https://mms.img.susercontent.com/sg-11134253-823qa-mp0p33ssak231a", "https://mms.img.susercontent.com/sg-11134253-823pf-mp0p4rcbhukv25", "https://mms.img.susercontent.com/sg-11134253-823r0-mp0p55srhl3505", "https://mms.img.susercontent.com/sg-11134253-823qp-mp0p4rd88d1o8d", "https://mms.img.susercontent.com/sg-11134253-823r7-mp0p318dtds0a6", "https://mms.img.susercontent.com/sg-11134253-823pr-mp0p4l4af7yja2", "https://mms.img.susercontent.com/sg-11134253-823r3-mp0p72vpc1l739", "https://mms.img.susercontent.com/sg-11134253-823pf-mp0p6xsralu33f"], "Ops -Final -V3 - Prompt6 -中等改动，兼容版": ["https://mms.img.susercontent.com/sg-11134253-823qg-mp0p75yd8g0cce", "https://mms.img.susercontent.com/sg-11134253-823p6-mp0p7e8ngljjb0", "https://mms.img.susercontent.com/sg-11134253-823qh-mp0p8yyiw173d7", "https://mms.img.susercontent.com/sg-11134253-823pd-mp0p8toho3d881", "https://mms.img.susercontent.com/sg-11134253-823pa-mp0p78ulwt1e66", "https://mms.img.susercontent.com/sg-11134253-823q9-mp0p75x5vv2lbb", "https://mms.img.susercontent.com/sg-11134253-823px-mp0p8z6bz8cv88", "https://mms.img.susercontent.com/sg-11134253-823qg-mp0p8spwxwr022", "https://mms.img.susercontent.com/sg-11134253-823p1-mp0pbb40qqdnb5", "https://mms.img.susercontent.com/sg-11134253-823pb-mp0paszal4hucb"], "Ops -Final-v1 (jiapeng)": ["https://mms.img.susercontent.com/sg-11134253-823q3-mp0likiyk6j190", "https://mms.img.susercontent.com/sg-11134253-823qz-mp0liwp0q0b27a", "https://mms.img.susercontent.com/sg-11134253-823o8-mp0lijv0u6fjd8", "https://mms.img.susercontent.com/sg-11134253-823q4-mp0likwkmrda84", "https://mms.img.susercontent.com/sg-11134253-823r5-mp0lj1kvdx5be2", "https://mms.img.susercontent.com/sg-11134253-823oj-mp0ljgdoupdsfb", "https://mms.img.susercontent.com/sg-11134253-823qm-mp0lh4il9jil55", "https://mms.img.susercontent.com/sg-11134253-823pz-mp0ljbwlb2tocf", "https://mms.img.susercontent.com/sg-11134253-823op-mp0llgfakwlr2a", "https://mms.img.susercontent.com/sg-11134253-823of-mp0lmz54vs3mcb"], "Ops -Final-v2 (jiapeng)": ["https://mms.img.susercontent.com/sg-11134253-823qz-mp0mpxt13j0ha4", "https://mms.img.susercontent.com/sg-11134253-823r2-mp0mpop4yrkc4d", "https://mms.img.susercontent.com/sg-11134253-823o8-mp0mpypwdd721a", "https://mms.img.susercontent.com/sg-11134253-823qb-mp0mr1q18c26c6", "https://mms.img.susercontent.com/sg-11134253-823qy-mp0mq2vizfnx88", "https://mms.img.susercontent.com/sg-11134253-823pt-mp0mpu1lfj7l58", "https://mms.img.susercontent.com/sg-11134253-823pj-mp0mpy6ez4ld24", "https://mms.img.susercontent.com/sg-11134253-823ps-mp0mqsgbzz7yd7", "https://mms.img.susercontent.com/sg-11134253-823of-mp0mtxt5z40e75", "https://mms.img.susercontent.com/sg-11134253-823pg-mp0mttlth8uma1"], "Ops -Final-v3(jiapeng)-效果最好": ["https://mms.img.susercontent.com/sg-11134253-823ox-mp0m7vi6jpxp4e", "https://mms.img.susercontent.com/sg-11134253-823pt-mp0m82vq6lfm5f", "https://mms.img.susercontent.com/sg-11134253-823ol-mp0m82w33hu726", "https://mms.img.susercontent.com/sg-11134253-823r5-mp0m83ld7bpe03", "https://mms.img.susercontent.com/sg-11134253-823qk-mp0m83cesl5a8c", "https://mms.img.susercontent.com/sg-11134253-823qq-mp0m884qj30u7b", "https://mms.img.susercontent.com/sg-11134253-823oq-mp0m7w4fa8ej1f", "https://mms.img.susercontent.com/sg-11134253-823ob-mp0m8jbbxjij12", "https://mms.img.susercontent.com/sg-11134253-823p8-mp0maon3pte591", "https://mms.img.susercontent.com/sg-11134253-823qp-mp0mb6eihog2b5"], "design V1": ["https://mms.img.susercontent.com/sg-11134253-823oj-mp0fp2x69gxta0", "https://mms.img.susercontent.com/sg-11134253-823r8-mp0fopjvt7uq5f", "https://mms.img.susercontent.com/sg-11134253-823r0-mp0foug7dclqcc", "https://mms.img.susercontent.com/sg-11134253-823pm-mp0foraocdmoc8", "https://mms.img.susercontent.com/sg-11134253-823qo-mp0fovbi9g5ne3", "https://mms.img.susercontent.com/sg-11134253-823pd-mp0fpoe6ls7h4a", "https://mms.img.susercontent.com/sg-11134253-823pv-mp0fp1o3rabl1c", "https://mms.img.susercontent.com/sg-11134253-823o8-mp0fpcdsicjmda", "https://mms.img.susercontent.com/sg-11134253-823qx-mp0ftb35e1hr2d", "https://mms.img.susercontent.com/sg-11134253-823rb-mp0frti56qdr24"], "Glance": ["https://mms.img.susercontent.com/sg-11134253-823qc-mp0m2fphjgnf08", "https://mms.img.susercontent.com/sg-11134253-823pv-mp0m2fg4hz4049", "https://mms.img.susercontent.com/sg-11134253-823qa-mp0m2iktvcwf61", "https://mms.img.susercontent.com/sg-11134253-823pi-mp0m2l6gr30h76", "https://mms.img.susercontent.com/sg-11134253-823q2-mp0m1r1r4u0y7c", "https://mms.img.susercontent.com/sg-11134253-823ro-mp0m2rz96n7mf9", "https://mms.img.susercontent.com/sg-11134253-823p8-mp0m321hay33b8", "https://mms.img.susercontent.com/sg-11134253-823pe-mp0m2udfjh1c5d", "https://mms.img.susercontent.com/sg-11134253-823r8-mp0m3g4zkm4rc6", "https://mms.img.susercontent.com/sg-11134253-823oj-mp0m178480em37"]}, "商品图": {"设计优化v2": ["https://mms.img.susercontent.com/sg-11134253-823pc-mp0g617ztgjm82", "https://mms.img.susercontent.com/sg-11134253-823oa-mp0g5wfr5udq0c", "https://mms.img.susercontent.com/sg-11134253-823rd-mp0g690kac5r80", "https://mms.img.susercontent.com/sg-11134253-823p4-mp0g723jr37lae", "https://mms.img.susercontent.com/sg-11134253-823oj-mp0g619nsdu6dc", "https://mms.img.susercontent.com/sg-11134253-823r5-mp0g5s3z9xcf42", "https://mms.img.susercontent.com/sg-11134253-823qr-mp0g5wo0vfgs03", "https://mms.img.susercontent.com/sg-11134253-823qw-mp0g69vbij2a97", "https://mms.img.susercontent.com/sg-11134253-823pl-mp0gai4brzm558", "https://mms.img.susercontent.com/sg-11134253-823r9-mp0g924guwi47c"], "ops 优化1版 - kk v3中文版": ["https://mms.img.susercontent.com/sg-11134253-823pt-mp0hulg23t3f18", "https://mms.img.susercontent.com/sg-11134253-823rd-mp0hv30c7qxbde", "https://mms.img.susercontent.com/sg-11134253-823ov-mp0ht1j3q7ls5a", "https://mms.img.susercontent.com/sg-11134253-823q4-mp0ht83bybyj37", "https://mms.img.susercontent.com/sg-11134253-823qy-mp0hu0o6adc14e", "https://mms.img.susercontent.com/sg-11134253-823ri-mp0hsqcwopog21", "https://mms.img.susercontent.com/sg-11134253-823ql-mp0hu1smat4w69", "https://mms.img.susercontent.com/sg-11134253-823qf-mp0ht1gla77k62", "https://mms.img.susercontent.com/sg-11134253-823oi-mp0hwtoa4y687f", "https://mms.img.susercontent.com/sg-11134253-823rl-mp0hwt1nml8r36"], "ops 优化2版 - ops v5": ["https://mms.img.susercontent.com/sg-11134253-823ox-mp0h8gnr0efgb3", "https://mms.img.susercontent.com/sg-11134253-823qc-mp0h6xdp3ea563", "https://mms.img.susercontent.com/sg-11134253-823qh-mp0h79ml67ezdb", "https://mms.img.susercontent.com/sg-11134253-823p0-mp0h72hatgr04c", "https://mms.img.susercontent.com/sg-11134253-823qh-mp0h72h8pki366", "https://mms.img.susercontent.com/sg-11134253-823qs-mp0h72h93nrj36", "https://mms.img.susercontent.com/sg-11134253-823or-mp0h7m7uhla8e0", "https://mms.img.susercontent.com/sg-11134253-823p3-mp0h78x75ybv78", "https://mms.img.susercontent.com/sg-11134253-823pc-mp0ha3sythj6b9", "https://mms.img.susercontent.com/sg-11134253-823qr-mp0haeae677x70"], "ops 优化3版 - kk v4": ["https://mms.img.susercontent.com/sg-11134253-823rq-mp0idg90tips1f", "https://mms.img.susercontent.com/sg-11134253-823oj-mp0ibnoqo0026d", "https://mms.img.susercontent.com/sg-11134253-823ov-mp0ibyh6g55b0f", "https://mms.img.susercontent.com/sg-11134253-823pl-mp0ida7v07bhf4", "https://mms.img.susercontent.com/sg-11134253-823os-mp0idn5gtkaz45", "https://mms.img.susercontent.com/sg-11134253-823p9-mp0iedfp3cpb27", "https://mms.img.susercontent.com/sg-11134253-823qs-mp0idayy2r641a", "https://mms.img.susercontent.com/sg-11134253-823oe-mp0ik18xs6bk8d", "https://mms.img.susercontent.com/sg-11134253-823p5-mp0if7oo8ydn5a", "https://mms.img.susercontent.com/sg-11134253-823qz-mp0igaic7hfx1c"], "ops 优化4版": ["https://mms.img.susercontent.com/sg-11134253-823pv-mp0ieginal1na9", "https://mms.img.susercontent.com/sg-11134253-823qr-mp0ieolkthxq12", "https://mms.img.susercontent.com/sg-11134253-823q8-mp0ifrdle4ng47", "https://mms.img.susercontent.com/sg-11134253-823qa-mp0iepcp4zyn5d", "https://mms.img.susercontent.com/sg-11134253-823ps-mp0ieudu0nb423", "https://mms.img.susercontent.com/sg-11134253-823pu-mp0ifowy2o0b18", "https://mms.img.susercontent.com/sg-11134253-823qx-mp0ifbkawzyj83", "https://mms.img.susercontent.com/sg-11134253-823rq-mp0ifccggjrff5", "https://mms.img.susercontent.com/sg-11134253-823r5-mp0iikukpx4y9a", "https://mms.img.susercontent.com/sg-11134253-823qm-mp0ii3a6qx3682"]}}}};
+const LABELS = ['A','B','C','D','E','F','G','H'];
+
+const MODEL_MAP = {
+  '模版': '模版',
+  '商品图': '商品图',
+};
+const SHOW_MODELS = Object.keys(MODEL_MAP).filter(k => D.models.includes(k));
+
+const S = { avatarIdx: 0, template: SHOW_MODELS[0] };
+
+function getBranches(ai, t) {
+  return Object.keys((D.data[ai]&&D.data[ai][t])||{});
+}
+function getImages(ai,t,b) {
+  return (D.data[ai]&&D.data[ai][t]&&D.data[ai][t][b])||[];
+}
+
+// ── Votes (local cache) ──
+function getVotes() { try { return JSON.parse(localStorage.getItem('bv4')||'{}'); } catch { return {}; } }
+function saveVotes(v) { localStorage.setItem('bv4', JSON.stringify(v)); }
+
+function imgKey(ai,t,bi,ii,crit) { return [ai,t,bi,ii,crit].join('|'); }
+function getIV(ai,t,bi,ii,crit) { return getVotes()[imgKey(ai,t,bi,ii,crit)]||{me:null}; }
+function setIV(ai,t,bi,ii,crit,val) {
+  const v=getVotes(), k=imgKey(ai,t,bi,ii,crit);
+  v[k]={me:val}; saveVotes(v);
+}
+function bestKey(ai,t,ii) { return ['B',ai,t,ii].join('|'); }
+function getBV(ai,t,ii) { return getVotes()[bestKey(ai,t,ii)]||{counts:{},me:[]}; }
+function setBV(ai,t,ii,lbl) {
+  const v=getVotes(), k=bestKey(ai,t,ii);
+  const c=v[k]||{counts:{},me:[]};
+  if(!Array.isArray(c.me)) c.me = c.me ? [c.me] : [];
+  const idx=c.me.indexOf(lbl);
+  if(idx>=0){ c.me.splice(idx,1); } // deselect
+  else if(c.me.length<3){ c.me.push(lbl); } // select (max 3)
+  v[k]=c; saveVotes(v);
+}
+
+// ── Render avatars ──
+function renderAvatars() {
+  const el=document.getElementById('avatarRow'); el.innerHTML='';
+  D.avatars.forEach((url,i)=>{
+    const btn=document.createElement('button');
+    btn.className='avatar-item'+(i===S.avatarIdx?' active':'');
+    btn.type='button';
+    btn.innerHTML=`<img src="${url}" loading="lazy"/><div class="av-lbl">头像 ${i+1}</div>`;
+    btn.addEventListener('click',()=>{ S.avatarIdx=i; renderAvatars(); renderMain(); });
+    el.appendChild(btn);
+  });
+}
+
+// ── Render model tabs ──
+function renderTemplateTabs() {
+  const el=document.getElementById('templateTabs');
+  el.innerHTML=SHOW_MODELS.map(t=>
+    `<button class="pill ${t===S.template?'active':''}" data-t="${t}" type="button">${MODEL_MAP[t]||t}</button>`
+  ).join('');
+  el.querySelectorAll('.pill').forEach(btn=>btn.addEventListener('click',()=>{
+    S.template=btn.dataset.t; renderTemplateTabs(); renderMain();
+  }));
+}
+
+const CRITS = [
+  { key:'f1', label:'人脸一致性',    opts:['非常一致','部分一致','完全不像'] },
+  { key:'f2', label:'换脸自然度',    opts:['非常自然','一般','非常不自然'] },
+  { key:'b1', label:'身材比例',      opts:['无明显问题','略有问题','问题明显'] },
+  { key:'b2', label:'人像占比',      opts:['大','中等','小'] },
+  { key:'g1', label:'Glance风格',   opts:['非常符合','一般','不符合'] },
+];
+
+// ── Vote dropdowns HTML ──
+function vBtns(ai,t,bi,ii) {
+  return CRITS.map(c=>{
+    const iv=getIV(ai,t,bi,ii,c.key);
+    const answered = iv.me !== null;
+    const opts = `<option value="">— 请选择 —</option>` + c.opts.map((opt,oi)=>
+      `<option value="${oi}" ${iv.me===String(oi)?'selected':''}>${opt}</option>`
+    ).join('');
+    return `<div class="crit-row">
+      <span class="crit-label">${c.label}</span>
+      <select class="crit-select ${answered?'answered':''}" data-crit="${c.key}" data-bi="${bi}" data-ii="${ii}">${opts}</select>
+    </div>`;
+  }).join('');
+}
+
+// ── Render main ──
+function renderMain() {
+  const main=document.getElementById('main');
+  const ai=S.avatarIdx;
+  const branches=getBranches(ai,S.template);
+  if(!branches.length){ main.innerHTML='<p class="empty">暂无数据</p>'; return; }
+  const count=getImages(ai,S.template,branches[0]).length;
+  if(!count){ main.innerHTML='<p class="empty">暂无图片数据</p>'; return; }
+
+  let html='';
+  for(let ii=0;ii<count;ii++){
+    const bv=getBV(ai,S.template,ii);
+    // build best-picker bar (placed BEFORE images)
+    const visibleBranchesEarly=branches.filter(b=>!!getImages(ai,S.template,b)[ii]);
+    const meArr=Array.isArray(bv.me)?bv.me:(bv.me?[bv.me]:[]);
+    const bestBtnsEarly=visibleBranchesEarly.map((_,i2)=>{const l=LABELS[i2]||String(i2+1);return`<button class="best-btn ${meArr.includes(l)?'voted':''}" data-lbl="${l}" data-ii="${ii}" type="button">${l}</button>`;}).join('');
+    const bestBarHtml=`<div class="best-bar" data-ii="${ii}">
+      <span class="best-bar-q">选最优（最多选三个）${meArr.length ? `&nbsp;&nbsp;✅ 已选：${meArr.join('、')}` : ''}</span>
+      <div class="best-btns">${bestBtnsEarly}</div>
+    </div>`;
+    html+=`<div class="tmpl-block"><div class="tmpl-no">模板 ${ii+1} · <span style="color:#aaa;font-weight:400">${(D.styles[String(ai)]||[])[ii]||''}</span></div>${bestBarHtml}<div class="scroll-wrap"><div class="scroll-fade"></div><div class="versions-row" data-ii="${ii}">`;
+    branches.forEach((branch,bi)=>{
+      const url=getImages(ai,S.template,branch)[ii]||'';
+      if(!url) return;
+      const lbl=LABELS[bi]||String(bi+1);
+
+      const meArr2=Array.isArray(bv.me)?bv.me:(bv.me?[bv.me]:[]);
+      html+=`<div class="ver-card ${meArr2.includes(lbl)?'best-picked':''}" data-bi="${bi}" data-ii="${ii}">
+        <img src="${url}" loading="lazy" style="cursor:zoom-in" onclick="lbOpen('${url}')"/>
+        <div class="ver-lbl">版本 ${lbl}</div>
+        <div class="crit-block">${vBtns(ai,S.template,bi,ii)}</div>
+      </div>`;
+    });
+
+    html+=`</div></div></div>`;
+  }
+  main.innerHTML=html;
+
+
+  main.querySelectorAll('.best-btn').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      setBV(ai,S.template,+btn.dataset.ii,btn.dataset.lbl);
+      renderMain();
+    });
+  });
+
+  main.querySelectorAll('.crit-select').forEach(sel=>{
+    sel.addEventListener('change',()=>{
+      const bi=+sel.dataset.bi, ii=+sel.dataset.ii, crit=sel.dataset.crit;
+      const val = sel.value === '' ? null : sel.value;
+      setIV(ai,S.template,bi,ii,crit,val);
+      sel.classList.toggle('answered', val !== null);
+    });
+  });
+
+  // scroll fade: hide arrow when scrolled to end
+  main.querySelectorAll('.versions-row').forEach(row=>{
+    const wrap = row.closest('.scroll-wrap');
+    const update = () => {
+      const atEnd = row.scrollLeft + row.clientWidth >= row.scrollWidth - 8;
+      wrap.classList.toggle('at-end', atEnd);
+    };
+    row.addEventListener('scroll', update, {passive:true});
+    update();
+  });
+}
+
+// ── Lightbox ──
+function lbOpen(url) {
+  document.getElementById('lb-img').src = url;
+  document.getElementById('lb').classList.add('open');
+}
+document.getElementById('lb').addEventListener('click', e=>{
+  if(e.target === document.getElementById('lb')) document.getElementById('lb').classList.remove('open');
+});
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') document.getElementById('lb').classList.remove('open'); });
+
+// ── Toast ──
+function showToast(msg, isErr, duration=3000) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show'+(isErr?' err':'');
+  setTimeout(()=>t.className='toast', duration);
+}
+
+// ── Submit ──
+document.getElementById('submitBtn').addEventListener('click', async ()=>{
+  const name=document.getElementById('nameInput').value.trim();
+  if(!name){ showToast('请先输入你的名字',true); return; }
+
+  // ── Validate: every avatar × template × row must have a best pick ──
+  const missing=[];
+  D.avatars.forEach((_,ai)=>{
+    SHOW_MODELS.forEach(tmpl=>{
+      const branches=getBranches(ai,tmpl);
+      const count=branches.length?(getImages(ai,tmpl,branches[0]).length):0;
+      for(let ii=0;ii<count;ii++){
+        const bv=getBV(ai,tmpl,ii);
+        const meArr=Array.isArray(bv.me)?bv.me:(bv.me?[bv.me]:[]);
+        if(!meArr.length) missing.push(`头像${ai+1} · ${MODEL_MAP[tmpl]||tmpl} · 模板${ii+1}`);
+      }
+    });
+  });
+  if(missing.length){
+    const first=missing[0];
+    showToast(`⚠️ 还有 ${missing.length} 处未完成评测，请补全后再提交\n（第一处：${first}）`, true, 5000);
+    return;
+  }
+
+  const v=getVotes();
+  const rows=[];
+  const now=new Date().toLocaleString('zh-CN',{timeZone:'Asia/Shanghai'});
+
+  D.avatars.forEach((_,ai)=>{
+    SHOW_MODELS.forEach(tmpl=>{
+      const branches=getBranches(ai,tmpl);
+      const count=branches.length?(getImages(ai,tmpl,branches[0]).length):0;
+      for(let ii=0;ii<count;ii++){
+        const bv=getBV(ai,tmpl,ii);
+        branches.forEach((branch,bi)=>{
+          const lbl=LABELS[bi]||String(bi+1);
+          const critVotes = {};
+          CRITS.forEach(c => { critVotes[c.label] = (getIV(ai,tmpl,bi,ii,c.key).me !== null) ? c.opts[+getIV(ai,tmpl,bi,ii,c.key).me] : ''; });
+          rows.push({
+            time: now, name, avatar: `头像${ai+1}`,
+            model: MODEL_MAP[tmpl]||tmpl, template_no: ii+1,
+            style: (D.styles[String(ai)]||[])[ii]||'',
+            version_label: lbl, actual_branch: branch,
+            is_best: (Array.isArray(bv.me)?bv.me:(bv.me?[bv.me]:[])).includes(lbl) ? '是' : '',
+            ...critVotes
+          });
+        });
+      }
+    });
+  });
+
+
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true; btn.textContent='提交中...'; btn.classList.add('loading');
+
+  fetch(SCRIPT_URL, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain'},
+    body: JSON.stringify({ name, rows })
+  }).catch(()=>{});
+  // Apps Script processes the request even if CORS blocks the response
+  await new Promise(r=>setTimeout(r,1500));
+  showToast('✓ 提交成功！');
+  btn.textContent='已提交 ✓'; btn.style.background='#1a2a1a'; btn.style.color='#4f4';
+});
+
+renderAvatars(); renderTemplateTabs(); renderMain();
+</script>
+</body>
+</html>
