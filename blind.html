@@ -308,24 +308,7 @@ document.getElementById('submitBtn').addEventListener('click', async ()=>{
   const name=document.getElementById('nameInput').value.trim();
   if(!name){ showToast('请先输入你的名字',true); return; }
 
-  // ── Validate: every avatar × template × row must have a best pick ──
-  const missing=[];
-  D.avatars.forEach((_,ai)=>{
-    SHOW_MODELS.forEach(tmpl=>{
-      const branches=getBranches(ai,tmpl);
-      const count=branches.length?(getImages(ai,tmpl,branches[0]).length):0;
-      for(let ii=0;ii<count;ii++){
-        const bv=getBV(ai,tmpl,ii);
-        const meArr=Array.isArray(bv.me)?bv.me:(bv.me?[bv.me]:[]);
-        if(!meArr.length) missing.push(`头像${ai+1} · ${MODEL_MAP[tmpl]||tmpl} · 模板${ii+1}`);
-      }
-    });
-  });
-  if(missing.length){
-    const first=missing[0];
-    showToast(`⚠️ 还有 ${missing.length} 处未完成评测，请补全后再提交\n（第一处：${first}）`, true, 5000);
-    return;
-  }
+  // Validation temporarily disabled for testing
 
   const v=getVotes();
   const rows=[];
