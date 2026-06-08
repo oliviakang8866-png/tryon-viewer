@@ -61,21 +61,6 @@
     .ver-card img { width: 100%; height: auto; display: block; object-fit: contain; background: #151515; }
     .ver-lbl { text-align: center; font-size: 13px; font-weight: 700; color: #fff; padding: 6px 4px 3px; }
 
-    /* vote criteria – dropdown style */
-    .crit-block { border-top: 1px solid #1a1a1a; padding: 6px 8px 8px; display: flex; flex-direction: column; gap: 5px; }
-    .crit-row { display: flex; align-items: center; gap: 6px; }
-    .crit-label { font-size: 10px; color: #888; white-space: nowrap; flex: 0 0 56px; }
-    .crit-select {
-      flex: 1; background: #1a1a1a; color: #ccc; border: 1px solid #2a2a2a;
-      border-radius: 5px; font-size: 10px; padding: 4px 6px;
-      cursor: pointer; outline: none; appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23666'/%3E%3C/svg%3E");
-      background-repeat: no-repeat; background-position: right 6px center;
-      padding-right: 18px;
-    }
-    .crit-select:focus { border-color: #555; }
-    .crit-select.answered { border-color: #2a4a2a; color: #5c5; background-color: #0d1a0d; }
-
     /* scroll fade hint */
     .scroll-wrap { position: relative; }
     .scroll-fade {
@@ -242,28 +227,6 @@ function renderTemplateTabs() {
   }));
 }
 
-const CRITS = [
-  { key:'f1', label:'人脸一致性',    opts:['非常一致','部分一致','完全不像'] },
-  { key:'f2', label:'换脸自然度',    opts:['非常自然','一般','非常不自然'] },
-  { key:'b1', label:'身材比例',      opts:['无明显问题','略有问题','问题明显'] },
-  { key:'b2', label:'人像占比',      opts:['大','中等','小'] },
-  { key:'g1', label:'Glance风格',   opts:['非常符合','一般','不符合'] },
-];
-
-// ── Vote dropdowns HTML ──
-function vBtns(ai,t,bi,ii) {
-  return CRITS.map(c=>{
-    const iv=getIV(ai,t,bi,ii,c.key);
-    const answered = iv.me !== null;
-    const opts = `<option value="">— 请选择 —</option>` + c.opts.map((opt,oi)=>
-      `<option value="${oi}" ${iv.me===String(oi)?'selected':''}>${opt}</option>`
-    ).join('');
-    return `<div class="crit-row">
-      <span class="crit-label">${c.label}</span>
-      <select class="crit-select ${answered?'answered':''}" data-crit="${c.key}" data-bi="${bi}" data-ii="${ii}">${opts}</select>
-    </div>`;
-  }).join('');
-}
 
 // ── Render main ──
 function renderMain() {
@@ -295,7 +258,6 @@ function renderMain() {
       html+=`<div class="ver-card ${meArr2.includes(lbl)?'best-picked':''}" data-bi="${bi}" data-ii="${ii}">
         <img src="${url}" loading="lazy" style="cursor:zoom-in" onclick="lbOpen('${url}')"/>
         <div class="ver-lbl">版本 ${lbl}</div>
-        <div class="crit-block">${vBtns(ai,S.template,bi,ii)}</div>
       </div>`;
     });
 
@@ -309,15 +271,6 @@ function renderMain() {
       e.stopPropagation();
       setBV(ai,S.template,+btn.dataset.ii,btn.dataset.lbl);
       renderMain();
-    });
-  });
-
-  main.querySelectorAll('.crit-select').forEach(sel=>{
-    sel.addEventListener('change',()=>{
-      const bi=+sel.dataset.bi, ii=+sel.dataset.ii, crit=sel.dataset.crit;
-      const val = sel.value === '' ? null : sel.value;
-      setIV(ai,S.template,bi,ii,crit,val);
-      sel.classList.toggle('answered', val !== null);
     });
   });
 
@@ -386,15 +339,12 @@ document.getElementById('submitBtn').addEventListener('click', async ()=>{
         const bv=getBV(ai,tmpl,ii);
         branches.forEach((branch,bi)=>{
           const lbl=LABELS[bi]||String(bi+1);
-          const critVotes = {};
-          CRITS.forEach(c => { critVotes[c.label] = (getIV(ai,tmpl,bi,ii,c.key).me !== null) ? c.opts[+getIV(ai,tmpl,bi,ii,c.key).me] : ''; });
           rows.push({
             time: now, name, avatar: `头像${ai+1}`,
             model: MODEL_MAP[tmpl]||tmpl, template_no: ii+1,
             style: (D.styles[String(ai)]||[])[ii]||'',
             version_label: lbl, actual_branch: branch,
-            is_best: (Array.isArray(bv.me)?bv.me:(bv.me?[bv.me]:[])).includes(lbl) ? '是' : '',
-            ...critVotes
+            is_best: (Array.isArray(bv.me)?bv.me:(bv.me?[bv.me]:[])).includes(lbl) ? '是' : ''
           });
         });
       }
