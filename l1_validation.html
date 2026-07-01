@@ -1,0 +1,786 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>L1 Validation — Vignette Diversity</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,sans-serif;background:#111;color:#eee;padding:16px}
+h1{font-size:22px;margin-bottom:6px}
+.sub{color:#777;font-size:13px;margin-bottom:6px}
+.stats{color:#999;font-size:12px;margin-bottom:14px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;position:sticky;top:0;background:#111;z-index:20;padding:8px 0;border-bottom:1px solid #333}
+.tab{padding:7px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;background:#222;color:#777;border:1px solid #333;user-select:none}
+.tab:hover{background:#2a2a2a;color:#bbb}
+.tab.active{background:#1a3a1a;color:#8f8;border-color:#4a7a4a}
+.tab .n{font-size:10px;opacity:.6;margin-left:3px}
+.panel{display:none}.panel.active{display:block}
+.card{display:flex;gap:16px;background:#1a1a1a;border-radius:14px;padding:16px;margin:12px 0;align-items:flex-start;border:1px solid #222}
+.card:hover{border-color:#333;background:#1e1e1e}
+.img-col{flex-shrink:0;text-align:center}
+.img-col img{border-radius:10px;cursor:pointer;object-fit:cover;display:block}
+.img-col .cap{font-size:11px;color:#555;margin-top:5px;font-weight:600}
+.prod img{width:320px;height:400px}
+.gen img{width:340px;height:530px}
+.info{flex:0 0 160px;font-size:13px;display:flex;flex-direction:column;gap:8px;padding-top:10px}
+.iid{font-family:monospace;font-size:15px;font-weight:700;color:#ccc}
+.tag{display:inline-block;padding:3px 10px;border-radius:5px;font-size:12px;font-weight:600}
+.tag-f{background:#3a2244;color:#e8a}
+.tag-m{background:#223a44;color:#8be}
+.s1{font-size:11px;color:#888}
+.s2{font-size:15px;color:#c8a;font-weight:600}
+.slot{font-size:11px;color:#6a8;font-family:monospace}
+.ph{width:340px;height:530px;background:#222;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#444;font-size:12px}
+.lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:100;justify-content:center;align-items:center;cursor:zoom-out}
+.lb.show{display:flex}
+.lb img{max-width:95vw;max-height:95vh;border-radius:8px}
+</style></head><body>
+<h1>L1 Validation — Vignette Diversity (v5b)</h1>
+<p class="sub">每行: 商品图 | 信息 | 生成图 — 点击图片放大 — 同一商品多style对比多样性</p>
+<p class="stats">Success: 60/60</p>
+<div class="tabs">
+<div class="tab active" onclick="switchTab(0)">Men Shoes<span class="n">(11)</span></div>
+<div class="tab" onclick="switchTab(1)">Fashion Accessories<span class="n">(18)</span></div>
+<div class="tab" onclick="switchTab(2)">Men Clothes<span class="n">(8)</span></div>
+<div class="tab" onclick="switchTab(3)">Women Clothes<span class="n">(5)</span></div>
+<div class="tab" onclick="switchTab(4)">Women Shoes<span class="n">(2)</span></div>
+<div class="tab" onclick="switchTab(5)">Men Bags<span class="n">(5)</span></div>
+<div class="tab" onclick="switchTab(6)">Watches<span class="n">(11)</span></div>
+</div>
+<div class="panel active" id="p0">
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820li-mq440u3rh7nm94" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">26981446879</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Casual & Weekend</div>
+    <div class="s2">Basics for Men</div>
+    <div class="slot">[shoes]</div>
+    <div class="s1">Men Shoes-Slip Ons & Mules</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820lg-mq43zskwopovc9" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820li-mq440u3rh7nm94" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">26981446879</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Casual & Weekend</div>
+    <div class="s2">Basics for Women</div>
+    <div class="slot">[shoes]</div>
+    <div class="s1">Men Shoes-Slip Ons & Mules</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820lf-mq43zsxb3h1q7c" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820li-mq440u3rh7nm94" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">26981446879</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Casual & Weekend</div>
+    <div class="s2">Airport look</div>
+    <div class="slot">[shoes]</div>
+    <div class="s1">Men Shoes-Slip Ons & Mules</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820lb-mq43zt5dgzd7ea" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820l8-mq440sc96xhd66" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">23422230387</div>
+    <div><span class="tag tag-m">Male</span></div>
+    <div class="s1">Office & Corporate</div>
+    <div class="s2">Business Formal (M)</div>
+    <div class="slot">[shoes]</div>
+    <div class="s1">Men Shoes-Loafers & Boat Shoes</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820lg-mq4401aqtslqcc" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820l8-mq440sc96xhd66" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">23422230387</div>
+    <div><span class="tag tag-m">Male</span></div>
+    <div class="s1">Office & Corporate</div>
+    <div class="s2">Smart Casual (M)</div>
+    <div class="slot">[shoes]</div>
+    <div class="s1">Men Shoes-Loafers & Boat Shoes</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l6-mq4401o4tlvz76" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820l8-mq440sv36dce22" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">7192714666</div>
+    <div><span class="tag tag-m">Male</span></div>
+    <div class="s1">Office & Corporate</div>
+    <div class="s2">Business Formal (M)</div>
+    <div class="slot">[shoes]</div>
+    <div class="s1">Men Shoes-Oxfords & Lace-Ups</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l8-mq44023me97235" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820l8-mq440sv36dce22" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">7192714666</div>
+    <div><span class="tag tag-m">Male</span></div>
+    <div class="s1">Office & Corporate</div>
+    <div class="s2">Smart Casual (M)</div>
+    <div class="slot">[shoes]</div>
+    <div class="s1">Men Shoes-Oxfords & Lace-Ups</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820li-mq4402kqxclea2" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820l5-mq440r1ugmj22f" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">2586331716</div>
+    <div><span class="tag tag-m">Male</span></div>
+    <div class="s1">Office & Corporate</div>
+    <div class="s2">Business Formal (M)</div>
+    <div class="slot">[shoes]</div>
+    <div class="s1">Men Shoes-Loafers & Boat Shoes</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820li-mq440399yarxf4" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820l5-mq440r1ugmj22f" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">2586331716</div>
+    <div><span class="tag tag-m">Male</span></div>
+    <div class="s1">Office & Corporate</div>
+    <div class="s2">Smart Casual (M)</div>
+    <div class="slot">[shoes]</div>
+    <div class="s1">Men Shoes-Loafers & Boat Shoes</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l4-mq4403kf51xr27" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lh-mq440pckmrd982" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">2912329951</div>
+    <div><span class="tag tag-m">Male</span></div>
+    <div class="s1">Social & Nightlife</div>
+    <div class="s2">Date night</div>
+    <div class="slot">[shoes]</div>
+    <div class="s1">Men Shoes-Loafers & Boat Shoes</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l9-mq4408d7m70i26" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lh-mq440pckmrd982" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">2912329951</div>
+    <div><span class="tag tag-m">Male</span></div>
+    <div class="s1">Social & Nightlife</div>
+    <div class="s2">Fine Dining</div>
+    <div class="slot">[shoes]</div>
+    <div class="s1">Men Shoes-Loafers & Boat Shoes</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820lc-mq4408sm3vgrb7" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+</div>
+<div class="panel" id="p1">
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820la-mq440vw6p14ycf" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">24763118350</div>
+    <div><span class="tag tag-f">Female</span></div>
+    <div class="s1">Casual & Weekend</div>
+    <div class="s2">Basics for Women</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Sunglasses</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l8-mq43ztdebpjg00" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820la-mq440vw6p14ycf" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">24763118350</div>
+    <div><span class="tag tag-f">Female</span></div>
+    <div class="s1">Casual & Weekend</div>
+    <div class="s2">Airport look</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Sunglasses</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l7-mq43ztp5mwpba7" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820ld-mq440w9iqm1a49" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">27167787635</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Casual & Weekend</div>
+    <div class="s2">Casual dine out / cafe</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Sunglasses</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l9-mq43zucwzy8c10" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820ld-mq440w9iqm1a49" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">27167787635</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Casual & Weekend</div>
+    <div class="s2">Beach / vacation / tropical getaway</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Sunglasses</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l7-mq43zwgfj3m468" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820li-mq440rzs7gnh9a" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">42217470309</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Casual & Weekend</div>
+    <div class="s2">The Athletic Leisure</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Fashion Accessories-Hats & Caps</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820li-mq43zws0y70ie3" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820li-mq440rzs7gnh9a" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">42217470309</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Casual & Weekend</div>
+    <div class="s2">Airport look</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Fashion Accessories-Hats & Caps</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820li-mq43zx55f9qlc9" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lf-mq440wgkbitp31" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">24220332952</div>
+    <div><span class="tag tag-f">Female</span></div>
+    <div class="s1">Casual & Weekend</div>
+    <div class="s2">Basics for Women</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Sunglasses</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l8-mq43zxf3vx1q2b" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lf-mq440wgkbitp31" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">24220332952</div>
+    <div><span class="tag tag-f">Female</span></div>
+    <div class="s1">Casual & Weekend</div>
+    <div class="s2">Airport look</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Sunglasses</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820le-mq43zxqb54aoaf" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lf-mq440wgkbitp31" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">24220332952</div>
+    <div><span class="tag tag-f">Female</span></div>
+    <div class="s1">Seasonal & Special</div>
+    <div class="s2">Warmer climate</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Sunglasses</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l6-mq4406u2cw7hcb" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820l8-mq440uart69t60" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">24009319625</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Seasonal & Special</div>
+    <div class="s2">Warmer climate</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Sunglasses</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820la-mq44079nbqxb74" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lh-mq440u6mvklpdf" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">24388380111</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Seasonal & Special</div>
+    <div class="s2">Warmer climate</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Fashion Accessories-Hats & Caps</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l9-mq4407wyknwv4b" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lg-mq440utxt91r55" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">57850232361</div>
+    <div><span class="tag tag-f">Female</span></div>
+    <div class="s1">Social & Nightlife</div>
+    <div class="s2">Day date</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Fashion Accessories-Necklaces</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820lf-mq4409cb88hs2e" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lb-mq440w6jo7pr78" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">28192449452</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Social & Nightlife</div>
+    <div class="s2">Day date</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Fashion Accessories-Hats & Caps</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l8-mq440a0esxs113" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lh-mq440u6mvklpdf" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">24388380111</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Sports & Outdoor</div>
+    <div class="s2">Hiking / Trail</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Fashion Accessories-Hats & Caps</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l7-mq440dhzliipcf" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lb-mq440s5oth5766" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">42568531401</div>
+    <div><span class="tag tag-f">Female</span></div>
+    <div class="s1">Style & Aesthetics</div>
+    <div class="s2">Minimal</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Sunglasses</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820lh-mq440ihue96z19" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lb-mq440s5oth5766" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">42568531401</div>
+    <div><span class="tag tag-f">Female</span></div>
+    <div class="s1">Style & Aesthetics</div>
+    <div class="s2">Vintage</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Sunglasses</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820la-mq440j22d2j3c1" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lg-mq440wmy7swd0c" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">48657956406</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Style & Aesthetics</div>
+    <div class="s2">Streetwear</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Fashion Accessories-Hats & Caps</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820le-mq440jes4l589f" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lg-mq440wmy7swd0c" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">48657956406</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Style & Aesthetics</div>
+    <div class="s2">K-Fashion</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Fashion Accessories-Hats & Caps</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820lh-mq440judeoe9ad" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+</div>
+<div class="panel" id="p2">
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lb-mq440r47oetna2" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">40404827872</div>
+    <div><span class="tag tag-m">Male</span></div>
+    <div class="s1">Formal & Events</div>
+    <div class="s2">Corporate Gala</div>
+    <div class="slot">[full_body]</div>
+    <div class="s1">Suit Sets</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l8-mq43zy7hz37z39" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lb-mq440r47oetna2" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">40404827872</div>
+    <div><span class="tag tag-m">Male</span></div>
+    <div class="s1">Office & Corporate</div>
+    <div class="s2">Business Formal (M)</div>
+    <div class="slot">[full_body]</div>
+    <div class="s1">Suit Sets</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l7-mq43zylbt72l4b" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lb-mq440r47oetna2" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">40404827872</div>
+    <div><span class="tag tag-m">Male</span></div>
+    <div class="s1">Office & Corporate</div>
+    <div class="s2">Smart Casual (M)</div>
+    <div class="slot">[full_body]</div>
+    <div class="s1">Suit Sets</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l7-mq43zz0lnpxn47" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820l8-mq440r7eqrkc19" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">40404827872</div>
+    <div><span class="tag tag-m">male</span></div>
+    <div class="s1">Office & Corporate</div>
+    <div class="s2">Business Formal (M)</div>
+    <div class="slot">[full_body]</div>
+    <div class="s1">Suit Sets</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820lf-mq43zzmj8hzhe8" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820l8-mq440r7eqrkc19" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">40404827872</div>
+    <div><span class="tag tag-m">male</span></div>
+    <div class="s1">Office & Corporate</div>
+    <div class="s2">Business Formal (M)</div>
+    <div class="slot">[full_body]</div>
+    <div class="s1">Suit Sets</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l9-mq43zzwj3pqja2" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820l8-mq440r7eqrkc19" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">40404827872</div>
+    <div><span class="tag tag-m">male</span></div>
+    <div class="s1">Office & Corporate</div>
+    <div class="s2">Business Formal (M)</div>
+    <div class="slot">[full_body]</div>
+    <div class="s1">Suit Sets</div>
+  </div>
+  <div class="img-col gen"><img src="images/gen_016.jpg" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820l5-mq440ro4g36734" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">24091907527</div>
+    <div><span class="tag tag-m">Male</span></div>
+    <div class="s1">Office & Corporate</div>
+    <div class="s2">Business Formal (M)</div>
+    <div class="slot">[bottom]</div>
+    <div class="s1">Suit Pants</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820li-mq4400c1roy46c" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820l5-mq440ro4g36734" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">24091907527</div>
+    <div><span class="tag tag-m">Male</span></div>
+    <div class="s1">Office & Corporate</div>
+    <div class="s2">Smart Casual (M)</div>
+    <div class="slot">[bottom]</div>
+    <div class="s1">Suit Pants</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820le-mq4400rxe0pbc5" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+</div>
+<div class="panel" id="p3">
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820la-mq440pg64u8f04" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">16051656015</div>
+    <div><span class="tag tag-f">Female</span></div>
+    <div class="s1">Seasonal & Special</div>
+    <div class="s2">Rainy season</div>
+    <div class="slot">[top]</div>
+    <div class="s1">Winter Jackets & Coats</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820le-mq4404105te4bf" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820la-mq440pg64u8f04" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">16051656015</div>
+    <div><span class="tag tag-f">Female</span></div>
+    <div class="s1">Seasonal & Special</div>
+    <div class="s2">Winter look</div>
+    <div class="slot">[top]</div>
+    <div class="s1">Winter Jackets & Coats</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l9-mq4404tmhde569" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820la-mq440pg64u8f04" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">16051656015</div>
+    <div><span class="tag tag-f">Female</span></div>
+    <div class="s1">Seasonal & Special</div>
+    <div class="s2">Fall look / cool breeze</div>
+    <div class="slot">[top]</div>
+    <div class="s1">Winter Jackets & Coats</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l8-mq44058xkuff6d" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820la-mq440sexonwidd" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">22430504081</div>
+    <div><span class="tag tag-f">Female</span></div>
+    <div class="s1">Sports & Outdoor</div>
+    <div class="s2">Yoga / Pilates</div>
+    <div class="slot">[bottom]</div>
+    <div class="s1">Leggings & Treggings</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820lh-mq440cg70vsw3e" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820la-mq440sexonwidd" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">22430504081</div>
+    <div><span class="tag tag-f">Female</span></div>
+    <div class="s1">Sports & Outdoor</div>
+    <div class="s2">Gym & Fitness</div>
+    <div class="slot">[bottom]</div>
+    <div class="s1">Leggings & Treggings</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820le-mq440d393pc198" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+</div>
+<div class="panel" id="p4">
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lb-mq440pq3rzm4b6" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">5234847236</div>
+    <div><span class="tag tag-f">Female</span></div>
+    <div class="s1">Seasonal & Special</div>
+    <div class="s2">Rainy season</div>
+    <div class="slot">[shoes]</div>
+    <div class="s1">Health Slippers</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820le-mq4405naoutd4b" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lb-mq440pq3rzm4b6" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">5234847236</div>
+    <div><span class="tag tag-f">Female</span></div>
+    <div class="s1">Seasonal & Special</div>
+    <div class="s2">Warmer climate</div>
+    <div class="slot">[shoes]</div>
+    <div class="s1">Health Slippers</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820ld-mq4406cjz5725a" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+</div>
+<div class="panel" id="p5">
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lc-mq440pyv1o8w98" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">9067122841</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Social & Nightlife</div>
+    <div class="s2">Concert & Fandom</div>
+    <div class="slot">[bag]</div>
+    <div class="s1">Men Bags-Waist Bags & Chest Bags</div>
+  </div>
+  <div class="img-col gen"><img src="images/gen_037.jpg" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lc-mq440wkcvuha4f" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">27308393844</div>
+    <div><span class="tag tag-m">Male</span></div>
+    <div class="s1">Social & Nightlife</div>
+    <div class="s2">Concert & Fandom</div>
+    <div class="slot">[bag]</div>
+    <div class="s1">Men Bags-Crossbody & Shoulder Bags</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820ld-mq440an2ogle9e" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820le-mq440rjbzh1qc4" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">28621404382</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Sports & Outdoor</div>
+    <div class="s2">Running / Marathon</div>
+    <div class="slot">[bag]</div>
+    <div class="s1">Men Bags-Backpacks</div>
+  </div>
+  <div class="img-col gen"><img src="images/gen_039.jpg" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820le-mq440rjbzh1qc4" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">28621404382</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Sports & Outdoor</div>
+    <div class="s2">Gym & Fitness</div>
+    <div class="slot">[bag]</div>
+    <div class="s1">Men Bags-Backpacks</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820lg-mq440aygc0zm2a" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820l6-mq440q2bfqq4ec" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">27970675186</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Sports & Outdoor</div>
+    <div class="s2">Hiking / Trail</div>
+    <div class="slot">[bag]</div>
+    <div class="s1">Men Bags-Backpacks</div>
+  </div>
+  <div class="img-col gen"><img src="images/gen_046.jpg" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+</div>
+<div class="panel" id="p6">
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820l8-mq440tulks1u9b" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">29465869894</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Sports & Outdoor</div>
+    <div class="s2">Hiking / Trail</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Watches-Men Watches</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820le-mq440bft0p3465" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820l8-mq440tulks1u9b" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">29465869894</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Sports & Outdoor</div>
+    <div class="s2">Running / Marathon</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Watches-Men Watches</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820lh-mq440c6pau4h33" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lc-mq440uwxi4gcf6" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">43226081394</div>
+    <div><span class="tag tag-f">Female</span></div>
+    <div class="s1">Style & Aesthetics</div>
+    <div class="s2">Minimal</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Watches-Women Watches</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l9-mq440e24mz9ef2" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lc-mq440uwxi4gcf6" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">43226081394</div>
+    <div><span class="tag tag-f">Female</span></div>
+    <div class="s1">Style & Aesthetics</div>
+    <div class="s2">K-Fashion</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Watches-Women Watches</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l7-mq440en7tiwy09" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820lc-mq440uwxi4gcf6" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">43226081394</div>
+    <div><span class="tag tag-f">Female</span></div>
+    <div class="s1">Style & Aesthetics</div>
+    <div class="s2">Soft girl / pastel cute</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Watches-Women Watches</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820l9-mq440ez974lrdc" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820la-mq440rwppgchf2" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">1564184638</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Style & Aesthetics</div>
+    <div class="s2">Minimal</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Watches-Men Watches</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820lf-mq440fpcn7yn69" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820la-mq440rwppgchf2" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">1564184638</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Style & Aesthetics</div>
+    <div class="s2">Vintage</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Watches-Men Watches</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820lb-mq440g9i1bsy07" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820la-mq440rwppgchf2" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">1564184638</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Style & Aesthetics</div>
+    <div class="s2">Streetwear</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Watches-Men Watches</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820lh-mq440gi9b0g0b9" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820l6-mq440q633rb414" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">1759560334</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Style & Aesthetics</div>
+    <div class="s2">Vintage</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Watches-Men Watches</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820lb-mq440h8w582367" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820l6-mq440q633rb414" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">1759560334</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Style & Aesthetics</div>
+    <div class="s2">Streetwear</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Watches-Men Watches</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820le-mq440hj2bzta63" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+<div class="card">
+  <div class="img-col prod"><img src="https://mms.img.susercontent.com/my-11134253-820l6-mq440q633rb414" loading="lazy"/><div class="cap">商品图</div></div>
+  <div class="info">
+    <div class="iid">1759560334</div>
+    <div><span class="tag tag-m">Unisex</span></div>
+    <div class="s1">Style & Aesthetics</div>
+    <div class="s2">K-Fashion</div>
+    <div class="slot">[accessories]</div>
+    <div class="s1">Watches-Men Watches</div>
+  </div>
+  <div class="img-col gen"><img src="https://mms.img.susercontent.com/my-11134253-820li-mq440i6ngahaac" loading="lazy"/><div class="cap">V5b生成</div></div>
+</div>
+</div>
+
+<div class="lb" id="lb" onclick="this.classList.remove('show')"><img id="lbi"></div>
+<script>
+function switchTab(i){document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));document.querySelectorAll('.panel').forEach((p,j)=>p.classList.toggle('active',j===i))}
+document.addEventListener('click',e=>{if(e.target.tagName==='IMG'&&e.target.closest('.img-col')){document.getElementById('lbi').src=e.target.src;document.getElementById('lb').classList.add('show')}})
+</script></body></html>
