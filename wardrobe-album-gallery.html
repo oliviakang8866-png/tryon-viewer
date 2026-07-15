@@ -105,6 +105,103 @@ h1 {
   margin-right: 6px;
   vertical-align: middle;
 }
+
+.intro {
+  padding: 30px 0 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+.intro-block h2 {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 0 0 14px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+.owners {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+.owner-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  background: var(--surface);
+  opacity: 0.55;
+  transition: opacity 0.18s ease, border-color 0.18s ease;
+}
+.owner-card.active {
+  opacity: 1;
+  border-color: var(--accent);
+}
+.owner-card .who {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.owner-card .who .name {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.owner-card .who .age {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+.owner-card dl {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 6px 10px;
+  margin: 0;
+}
+.owner-card dt {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  padding-top: 1px;
+}
+.owner-card dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.type-table {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.type-row {
+  display: grid;
+  grid-template-columns: 150px 1fr 96px;
+  gap: 14px;
+  align-items: center;
+  padding: 11px 16px;
+  background: var(--surface);
+}
+.type-row + .type-row { border-top: 1px solid var(--border); }
+.type-row .t-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+.type-row .t-desc {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  line-height: 1.45;
+}
+.type-row .chip { justify-self: end; }
+@media (max-width: 640px) {
+  .type-row { grid-template-columns: 1fr; gap: 6px; }
+  .type-row .chip { justify-self: start; }
+}
 .tabs {
   display: inline-flex;
   gap: 4px;
@@ -299,12 +396,44 @@ button:focus-visible, .card:focus-visible {
     <div class="eyebrow">Wardrobe Demo · Stage 0</div>
     <h1>Mock 相册预览</h1>
     <p class="sub">两位虚构用户的手机相册样本 &mdash; 用于验证「从真实生活照中提取衣橱」这一步 pipeline 的可行性。每套相册混合了穿搭清晰照与完全无关的生活照，不是干净的单品图集。</p>
-    <div class="legend">
-      <span><span class="dot" style="background:var(--sem-high)"></span>可用性高 &mdash; 单品清晰可辨</span>
-      <span><span class="dot" style="background:var(--sem-mid)"></span>可用性中 &mdash; 需额外处理（人物定位/背景复杂）</span>
-      <span><span class="dot" style="background:var(--sem-filter)"></span>需过滤 &mdash; 与穿搭无关</span>
-    </div>
   </header>
+
+  <div class="intro">
+    <div class="intro-block">
+      <h2>相册主人</h2>
+      <div class="owners">
+        <div class="owner-card" data-owner="male">
+          <div class="who"><span class="name">男生 A</span><span class="age">25岁</span></div>
+          <dl>
+            <dt>职业</dt><dd>互联网产品经理</dd>
+            <dt>风格</dt><dd>休闲街头风（Streetwear / Casual）</dd>
+            <dt>生活</dt><dd>健身、周末徒步、朋友聚餐、偶尔出国旅游</dd>
+          </dl>
+        </div>
+        <div class="owner-card" data-owner="female">
+          <div class="who"><span class="name">女生 A</span><span class="age">24岁</span></div>
+          <dl>
+            <dt>职业</dt><dd>时尚买手 / 市场岗</dd>
+            <dt>风格</dt><dd>极简通勤风（Chic / Minimalist）</dd>
+            <dt>生活</dt><dd>咖啡探店、旅游拍照、逛街购物、闺蜜聚会</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="intro-block">
+      <h2>照片类型说明 &mdash; 每套相册都包含这 7 类</h2>
+      <div class="type-table">
+        <div class="type-row"><span class="t-name">OOTD 镜子自拍</span><span class="t-desc">全身穿搭清晰入镜，是衣橱库提取的黄金样本</span><span class="chip high">可用性 高</span></div>
+        <div class="type-row"><span class="t-name">衣柜整理平铺</span><span class="t-desc">单品平铺/挂拍，无人物遮挡，最接近干净单品图</span><span class="chip high">可用性 高</span></div>
+        <div class="type-row"><span class="t-name">试衣间 / 购物</span><span class="t-desc">镜子自拍，常带吊牌，构图相对清晰</span><span class="chip high">可用性 高</span></div>
+        <div class="type-row"><span class="t-name">旅行 / 户外场景</span><span class="t-desc">背景复杂、光线多变，测试模型在自然场景下的识别能力</span><span class="chip mid">可用性 中</span></div>
+        <div class="type-row"><span class="t-name">社交合照</span><span class="t-desc">多人入镜，需先定位画面中哪个人是相册主人</span><span class="chip mid">可用性 中</span></div>
+        <div class="type-row"><span class="t-name">居家日常抓拍</span><span class="t-desc">居家服、姿态随意，非正式场景下的识别测试</span><span class="chip mid">可用性 中</span></div>
+        <div class="type-row"><span class="t-name">无关照片</span><span class="t-desc">美食、宠物等，不含任何穿搭信息，用于测试相关性过滤步骤</span><span class="chip filter">需过滤</span></div>
+      </div>
+    </div>
+  </div>
 
   <div class="tabs" role="tablist">
     <button class="tab-btn active" data-gender="male" role="tab">男生相册 A</button>
@@ -336,6 +465,12 @@ const usefulnessClass = (u) => u === "高" ? "high" : (u === "中" ? "mid" : "fi
 const usefulnessText = (u) => u === "高" ? "可用性 高" : (u === "中" ? "可用性 中" : "需过滤");
 
 let currentGender = "male";
+
+function syncOwnerCards() {
+  document.querySelectorAll(".owner-card").forEach(c => {
+    c.classList.toggle("active", c.dataset.owner === currentGender);
+  });
+}
 
 function render() {
   const items = DATA.filter(d => d.gender === currentGender);
@@ -373,9 +508,11 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
     document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     currentGender = btn.dataset.gender;
+    syncOwnerCards();
     render();
   });
 });
+syncOwnerCards();
 
 const lightbox = document.getElementById("lightbox");
 function openLightbox(item) {
